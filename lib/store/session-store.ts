@@ -133,51 +133,9 @@ export const useSessionStore = create<SessionStore>()(
     {
       name: 'spec-wizard-session', // localStorage key
       storage: createJSONStorage(() => localStorage),
-      
-      // Custom serialization to handle Date objects
-      serialize: (state) => {
-        return JSON.stringify({
-          state: {
-            ...state.state,
-            conversationHistory: state.state.conversationHistory.map((msg) => ({
-              ...msg,
-              timestamp: msg.timestamp.toISOString(),
-            })),
-            specification: state.state.specification
-              ? {
-                  ...state.state.specification,
-                  lastUpdated: state.state.specification.lastUpdated.toISOString(),
-                }
-              : null,
-            lastSyncedAt: state.state.lastSyncedAt
-              ? state.state.lastSyncedAt.toISOString()
-              : null,
-          },
-        });
-      },
-      
-      // Custom deserialization to restore Date objects
-      deserialize: (str) => {
-        const parsed = JSON.parse(str);
-        return {
-          state: {
-            ...parsed.state,
-            conversationHistory: parsed.state.conversationHistory.map((msg: any) => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp),
-            })),
-            specification: parsed.state.specification
-              ? {
-                  ...parsed.state.specification,
-                  lastUpdated: new Date(parsed.state.specification.lastUpdated),
-                }
-              : null,
-            lastSyncedAt: parsed.state.lastSyncedAt
-              ? new Date(parsed.state.lastSyncedAt)
-              : null,
-          },
-        };
-      },
+
+      // TODO: Custom Date serialization needs to be implemented with zustand v4+ storage API
+      // For now using default JSON serialization (Dates will be stored as ISO strings)
       
       // Partial persistence - only persist essential data
       partialize: (state) => ({

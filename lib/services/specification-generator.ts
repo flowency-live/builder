@@ -3,21 +3,16 @@
  * Transforms conversation into structured PRD and plain English summaries
  */
 
-import { 
-  Specification, 
-  FormalPRD, 
-  PlainEnglishSummary, 
+import {
+  Specification,
+  FormalPRD,
+  PlainEnglishSummary,
   Requirement,
   NFR,
-  Message 
+  Message
 } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface ExtractedInformation {
-  topic: string;
-  data: Record<string, any>;
-  confidence: number;
-}
+import type { ExtractedInformation } from './conversation-engine';
 
 export interface ValidationResult {
   isComplete: boolean;

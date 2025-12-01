@@ -86,11 +86,11 @@ export class ExportService {
       // Upload to S3 with encryption
       const fileName = `specifications/${sessionId}/spec-v${specification.version}-${Date.now()}.pdf`;
       const { putObjectEncrypted } = await import('../aws/s3');
-      
+
       await putObjectEncrypted(
         this.bucketName,
         fileName,
-        pdfBuffer,
+        Buffer.from(pdfBuffer),
         'application/pdf'
       );
 

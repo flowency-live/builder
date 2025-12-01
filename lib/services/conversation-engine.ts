@@ -3,16 +3,11 @@
  * Manages conversation flow, context, and question generation
  */
 
-import { LLMRouter } from './llm-router';
+import { LLMRouter, StreamingResponse } from './llm-router';
 import { PromptManager, ConversationContext, ConversationStage } from './prompt-manager';
 import { Message, ProgressState, Specification } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { isEnglish, getNonEnglishMessage } from '../utils/language-detection';
-
-export interface StreamingResponse {
-  stream: ReadableStream<string>;
-  onComplete: (fullResponse: string) => Promise<void>;
-}
 
 export interface ExtractedInformation {
   topic: string;

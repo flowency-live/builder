@@ -33,7 +33,7 @@ export class SubmissionService {
     dynamoClient?: DynamoDBClient,
     tableName: string = process.env.DYNAMODB_TABLE_NAME || 'spec-wizard-table'
   ) {
-    this.dynamoClient = dynamoClient || getDynamoDBClient();
+    this.dynamoClient = dynamoClient || dynamoDBClient;
     this.tableName = tableName;
     this.specGenerator = new SpecificationGenerator();
   }

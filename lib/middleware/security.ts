@@ -76,9 +76,10 @@ const magicLinkRateLimiter = new RateLimiter(300000, 5); // 5 magic links per 5 
  * Get client identifier for rate limiting
  */
 function getClientIdentifier(request: NextRequest): string {
-  // Use IP address as identifier
+  // Use IP address as identifier from headers
   const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : request.ip || 'unknown';
+  const realIp = request.headers.get('x-real-ip');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : realIp || 'unknown';
   return ip;
 }
 

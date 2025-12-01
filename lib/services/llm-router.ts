@@ -14,6 +14,9 @@ import {
 } from './llm-types';
 import { ConversationContext } from './prompt-manager';
 
+// Re-export for convenience
+export type { StreamingResponse };
+
 export class LLMRouter {
   private openaiClient: OpenAI | null = null;
   private anthropicClient: Anthropic | null = null;
