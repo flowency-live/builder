@@ -5,13 +5,13 @@
  * Page for submitting specifications with contact information
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SubmissionForm } from '../../components/SubmissionForm';
 import { SubmissionConfirmation } from '../../components/SubmissionConfirmation';
 import type { ContactInfo } from '../../lib/models/types';
 
-export default function SubmitPage() {
+function SubmitPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('sessionId');
@@ -134,5 +134,23 @@ export default function SubmitPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SubmitPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SubmitPageContent />
+    </Suspense>
   );
 }
