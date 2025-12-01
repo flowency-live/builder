@@ -18,9 +18,9 @@ export default function LandingPage() {
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl text-[var(--color-muted)] max-w-2xl mx-auto leading-relaxed">
-              Our AI-powered wizard guides you through creating a comprehensive 
-              product specification for your software project. Just describe your 
+            <p className="text-lg sm:text-xl text-[var(--color-muted-foreground)] max-w-2xl mx-auto leading-relaxed">
+              Our AI-powered wizard guides you through creating a comprehensive
+              product specification for your software project. Just describe your
               idea, and we'll help you build a complete requirements document.
             </p>
           </div>
@@ -68,10 +68,10 @@ export default function LandingPage() {
                 <h3 className="text-lg font-semibold text-[var(--color-foreground)]">
                   Important: Confidentiality Notice
                 </h3>
-                <p className="text-[var(--color-muted)] leading-relaxed">
-                  Please <strong className="text-[var(--color-foreground)]">do not share confidential 
-                  or company-sensitive information</strong> during this initial specification process. 
-                  Keep your descriptions general until we establish a Non-Disclosure Agreement (NDA) 
+                <p className="text-[var(--color-muted-foreground)] leading-relaxed">
+                  Please <strong className="text-[var(--color-foreground)]">do not share confidential
+                  or company-sensitive information</strong> during this initial specification process.
+                  Keep your descriptions general until we establish a Non-Disclosure Agreement (NDA)
                   after submission.
                 </p>
                 <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -103,7 +103,7 @@ export default function LandingPage() {
               <h3 className="font-semibold text-[var(--color-foreground)]">
                 Conversational
               </h3>
-              <p className="text-sm text-[var(--color-muted)]">
+              <p className="text-sm text-[var(--color-muted-foreground)]">
                 Natural Q&A flow that adapts to your project
               </p>
             </div>
@@ -127,7 +127,7 @@ export default function LandingPage() {
               <h3 className="font-semibold text-[var(--color-foreground)]">
                 Real-Time Preview
               </h3>
-              <p className="text-sm text-[var(--color-muted)]">
+              <p className="text-sm text-[var(--color-muted-foreground)]">
                 Watch your specification build as you chat
               </p>
             </div>
@@ -151,7 +151,7 @@ export default function LandingPage() {
               <h3 className="font-semibold text-[var(--color-foreground)]">
                 Secure & Private
               </h3>
-              <p className="text-sm text-[var(--color-muted)]">
+              <p className="text-sm text-[var(--color-muted-foreground)]">
                 Your data is encrypted and protected
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-[var(--color-border)] py-8 px-4">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 text-sm text-[var(--color-muted)]">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 text-sm text-[var(--color-muted-foreground)]">
           <div className="flex items-center space-x-2">
             <span>Powered by</span>
             <span className="font-semibold text-[var(--color-secondary)]">

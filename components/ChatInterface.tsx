@@ -88,7 +88,7 @@ export default function ChatInterface({
           )}
           <button
             onClick={handleMagicLink}
-            className="px-3 py-1.5 text-sm text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors rounded-[var(--radius-md)] hover:bg-[var(--color-surface-elevated)]"
+            className="px-3 py-1.5 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-primary)] transition-colors rounded-[var(--radius-md)] hover:bg-[var(--color-surface-elevated)]"
             title="Continue on another device"
           >
             <svg
@@ -137,7 +137,7 @@ export default function ChatInterface({
               <h2 className="text-xl font-semibold text-[var(--color-foreground)]">
                 Let's build your specification
               </h2>
-              <p className="text-[var(--color-muted)]">
+              <p className="text-[var(--color-muted-foreground)]">
                 Tell me about your software project idea, and I'll guide you through
                 creating a comprehensive specification.
               </p>
@@ -241,7 +241,7 @@ export default function ChatInterface({
               </svg>
             </button>
           </div>
-          <p className="mt-2 text-xs text-[var(--color-muted)] text-center">
+          <p className="mt-2 text-xs text-[var(--color-muted-foreground)] text-center">
             Press Enter to send, Shift+Enter for new line
           </p>
         </form>

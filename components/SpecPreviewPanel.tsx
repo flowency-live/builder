@@ -62,7 +62,7 @@ export function SpecPreviewPanel({
               <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
             )}
           </h3>
-          <p className="text-[var(--color-muted)] leading-relaxed">
+          <p className="text-[var(--color-muted-foreground)] leading-relaxed">
             {plainEnglishSummary.overview || 'No overview yet. Keep chatting to build your specification.'}
           </p>
         </section>
@@ -85,14 +85,14 @@ export function SpecPreviewPanel({
           {plainEnglishSummary.keyFeatures.length > 0 ? (
             <ul className="space-y-2">
               {plainEnglishSummary.keyFeatures.map((feature, index) => (
-                <li key={index} className="flex items-start text-[var(--color-muted)]">
+                <li key={index} className="flex items-start text-[var(--color-muted-foreground)]">
                   <span className="mr-2 text-[var(--color-primary)]">•</span>
                   <span>{feature}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-[var(--color-muted)] italic">No features defined yet.</p>
+            <p className="text-[var(--color-muted-foreground)] italic">No features defined yet.</p>
           )}
         </section>
 
@@ -111,7 +111,7 @@ export function SpecPreviewPanel({
               <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
             )}
           </h3>
-          <p className="text-[var(--color-muted)]">
+          <p className="text-[var(--color-muted-foreground)]">
             {plainEnglishSummary.targetUsers || 'Target users not specified yet.'}
           </p>
         </section>
@@ -188,7 +188,7 @@ export function SpecPreviewPanel({
               <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
             )}
           </h3>
-          <p className="text-[var(--color-muted)] leading-relaxed">
+          <p className="text-[var(--color-muted-foreground)] leading-relaxed">
             {formalPRD.introduction || 'Introduction will be generated as we gather more information.'}
           </p>
         </section>
@@ -210,7 +210,7 @@ export function SpecPreviewPanel({
               {Object.entries(formalPRD.glossary).map(([term, definition]) => (
                 <div key={term} className="border-l-2 border-[var(--color-primary)] pl-3">
                   <dt className="font-semibold text-[var(--color-foreground)]">{term}</dt>
-                  <dd className="text-[var(--color-muted)] mt-1">{definition}</dd>
+                  <dd className="text-[var(--color-muted-foreground)] mt-1">{definition}</dd>
                 </div>
               ))}
             </dl>
@@ -237,7 +237,7 @@ export function SpecPreviewPanel({
                   className="p-3 bg-[var(--color-surface-elevated)] rounded-[var(--radius-md)] border border-[var(--color-border)]"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <span className="text-xs font-mono text-[var(--color-muted)]">{req.id}</span>
+                    <span className="text-xs font-mono text-[var(--color-muted-foreground)]">{req.id}</span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
                         req.priority === 'must-have'
@@ -250,10 +250,10 @@ export function SpecPreviewPanel({
                   </div>
                   <p className="text-[var(--color-foreground)] mb-2 italic">{req.userStory}</p>
                   <div className="mt-2">
-                    <p className="text-xs font-semibold text-[var(--color-muted)] mb-1">Acceptance Criteria:</p>
+                    <p className="text-xs font-semibold text-[var(--color-muted-foreground)] mb-1">Acceptance Criteria:</p>
                     <ul className="space-y-1">
                       {req.acceptanceCriteria.map((criteria, index) => (
-                        <li key={index} className="text-sm text-[var(--color-muted)] flex items-start">
+                        <li key={index} className="text-sm text-[var(--color-muted-foreground)] flex items-start">
                           <span className="mr-2 text-[var(--color-primary)]">•</span>
                           <span>{criteria}</span>
                         </li>
@@ -264,7 +264,7 @@ export function SpecPreviewPanel({
               ))}
             </div>
           ) : (
-            <p className="text-[var(--color-muted)] italic">No requirements defined yet.</p>
+            <p className="text-[var(--color-muted-foreground)] italic">No requirements defined yet.</p>
           )}
         </section>
 
@@ -288,12 +288,12 @@ export function SpecPreviewPanel({
                   className="p-3 bg-[var(--color-surface-elevated)] rounded-[var(--radius-md)] border border-[var(--color-border)]"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono text-[var(--color-muted)]">{nfr.id}</span>
+                    <span className="text-xs font-mono text-[var(--color-muted-foreground)]">{nfr.id}</span>
                     <span className="text-xs px-2 py-0.5 bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded-full">
                       {nfr.category}
                     </span>
                   </div>
-                  <p className="text-sm text-[var(--color-muted)]">{nfr.description}</p>
+                  <p className="text-sm text-[var(--color-muted-foreground)]">{nfr.description}</p>
                 </div>
               ))}
             </div>
@@ -330,7 +330,7 @@ export function SpecPreviewPanel({
               className="p-2 hover:bg-[var(--color-surface-elevated)] rounded-[var(--radius-md)] transition-colors"
               aria-label="Close panel"
             >
-              <svg className="w-6 h-6 text-[var(--color-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-[var(--color-muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -343,7 +343,7 @@ export function SpecPreviewPanel({
               className={`flex-1 px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
                 viewMode === 'simple'
                   ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--color-surface-elevated)] text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+                  : 'bg-[var(--color-surface-elevated)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
               }`}
             >
               Simple View
@@ -353,7 +353,7 @@ export function SpecPreviewPanel({
               className={`flex-1 px-4 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
                 viewMode === 'detailed'
                   ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--color-surface-elevated)] text-[var(--color-muted)] hover:text-[var(--color-foreground)]'
+                  : 'bg-[var(--color-surface-elevated)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]'
               }`}
             >
               Detailed View
@@ -383,7 +383,7 @@ export function SpecPreviewPanel({
           </div>
 
           {/* Metadata */}
-          <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-muted)]">
+          <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex items-center justify-between text-xs text-[var(--color-muted-foreground)]">
             <span>Version {specification.version}</span>
             <span>Last updated: {new Date(specification.lastUpdated).toLocaleString()}</span>
           </div>

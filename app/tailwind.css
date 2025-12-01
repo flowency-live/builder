@@ -23,8 +23,9 @@
 
   /* Text colors */
   --color-foreground: hsl(0 0% 98%); /* Primary text */
-  --color-muted: hsl(225 50% 20%); /* Muted backgrounds */
-  --color-muted-foreground: hsl(220 9% 66%); /* Secondary text */
+  --color-muted: hsl(225 50% 20%); /* Muted backgrounds/elements */
+  --color-muted-foreground: hsl(220 14% 75%); /* Secondary text - increased contrast */
+  --color-text-muted: hsl(220 14% 75%); /* Alias for muted text */
 
   /* Borders and inputs */
   --color-border: hsl(225 50% 20%); /* Standard borders */

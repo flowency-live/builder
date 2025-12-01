@@ -29,12 +29,12 @@ export default function TermsOfService() {
             <h1 className="text-4xl font-bold text-[var(--color-foreground)] mb-4">
               Terms of Service
             </h1>
-            <p className="text-[var(--color-muted)]">
+            <p className="text-[var(--color-muted-foreground)]">
               Last updated: {new Date().toLocaleDateString()}
             </p>
           </div>
 
-          <div className="space-y-6 text-[var(--color-muted)] leading-relaxed">
+          <div className="space-y-6 text-[var(--color-muted-foreground)] leading-relaxed">
             <section className="space-y-3">
               <h2 className="text-2xl font-semibold text-[var(--color-foreground)]">
                 1. Acceptance of Terms

@@ -78,7 +78,7 @@ export default function ProgressDemoPage() {
           <h1 className="text-3xl font-bold text-[var(--color-foreground)]">
             Progress Indicator Demo
           </h1>
-          <p className="text-[var(--color-muted)]">
+          <p className="text-[var(--color-muted-foreground)]">
             Test the ProgressIndicator component with different states
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function ProgressDemoPage() {
             <h2 className="text-lg font-semibold text-[var(--color-foreground)] mb-4">
               Current State
             </h2>
-            <pre className="text-xs text-[var(--color-muted)] overflow-auto">
+            <pre className="text-xs text-[var(--color-muted-foreground)] overflow-auto">
               {JSON.stringify(progressState, null, 2)}
             </pre>
           </div>

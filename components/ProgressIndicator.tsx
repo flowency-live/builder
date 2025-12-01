@@ -48,7 +48,7 @@ export default function ProgressIndicator({
       default:
         return (
           <svg
-            className="w-5 h-5 text-[var(--color-muted)]"
+            className="w-5 h-5 text-[var(--color-muted-foreground)]"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -72,7 +72,7 @@ export default function ProgressIndicator({
       case 'Complex':
         return 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] border-[var(--color-primary)]/30';
       default:
-        return 'bg-[var(--color-muted)]/20 text-[var(--color-muted)] border-[var(--color-muted)]/30';
+        return 'bg-[var(--color-muted)]/20 text-[var(--color-muted-foreground)] border-[var(--color-muted)]/30';
     }
   };
 
@@ -102,7 +102,7 @@ export default function ProgressIndicator({
       {/* Overall Completeness */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[var(--color-muted)]">Overall Completeness</span>
+          <span className="text-[var(--color-muted-foreground)]">Overall Completeness</span>
           <span className="font-semibold text-[var(--color-foreground)]">
             {overallCompleteness}%
           </span>
@@ -117,7 +117,7 @@ export default function ProgressIndicator({
 
       {/* Topics List */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-[var(--color-muted)] uppercase tracking-wide">
+        <h3 className="text-sm font-medium text-[var(--color-muted-foreground)] uppercase tracking-wide">
           Topics to Cover
         </h3>
         <div className="space-y-2">
@@ -135,7 +135,7 @@ export default function ProgressIndicator({
                         ? 'text-[var(--color-foreground)]'
                         : topic.status === 'in-progress'
                         ? 'text-[var(--color-warning)]'
-                        : 'text-[var(--color-muted)]'
+                        : 'text-[var(--color-muted-foreground)]'
                     }`}
                   >
                     {topic.name}
@@ -154,7 +154,7 @@ export default function ProgressIndicator({
                       ? 'text-[var(--color-success)]'
                       : topic.status === 'in-progress'
                       ? 'text-[var(--color-warning)]'
-                      : 'text-[var(--color-muted)]'
+                      : 'text-[var(--color-muted-foreground)]'
                   }`}
                 >
                   {topic.status === 'complete'
@@ -168,7 +168,7 @@ export default function ProgressIndicator({
           ))}
         </div>
         {topics.some((t) => t.required) && (
-          <p className="text-xs text-[var(--color-muted)] mt-3">
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-3">
             <span className="text-[var(--color-destructive)]">*</span> Required
             for submission
           </p>
@@ -194,7 +194,7 @@ export default function ProgressIndicator({
               <p className="text-sm font-medium text-[var(--color-success)]">
                 Specification Complete!
               </p>
-              <p className="text-xs text-[var(--color-muted)] mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
                 All required topics have been covered. You're ready to submit.
               </p>
             </div>
@@ -218,7 +218,7 @@ export default function ProgressIndicator({
               <p className="text-sm font-medium text-[var(--color-warning)]">
                 Making Good Progress
               </p>
-              <p className="text-xs text-[var(--color-muted)] mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
                 Keep going! A few more topics to cover.
               </p>
             </div>
@@ -242,7 +242,7 @@ export default function ProgressIndicator({
               <p className="text-sm font-medium text-[var(--color-primary)]">
                 Just Getting Started
               </p>
-              <p className="text-xs text-[var(--color-muted)] mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
                 I'll guide you through each topic as we build your specification.
               </p>
             </div>
