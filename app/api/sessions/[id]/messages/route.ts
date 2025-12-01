@@ -14,7 +14,20 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Message, SessionState } from '@/lib/models/types';
 
 // Initialize services
-const llmRouter = new LLMRouter();
+const llmRouter = new LLMRouter({
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    defaultModel: 'gpt-4o-mini',
+  },
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    defaultModel: 'claude-3-5-haiku-20241022',
+  },
+  rateLimit: {
+    maxRequestsPerMinute: 60,
+    maxTokensPerMinute: 100000,
+  },
+});
 const promptManager = new PromptManager();
 const conversationEngine = new ConversationEngine(llmRouter, promptManager);
 const specificationGenerator = new SpecificationGenerator(llmRouter, promptManager);
