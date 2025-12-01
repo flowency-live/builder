@@ -7,12 +7,22 @@
 const isLocalStack = process.env.USE_LOCALSTACK === 'true';
 const localStackEndpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localhost:4566';
 
+// Base config - only include credentials if explicitly provided (for local development)
+// In production (Amplify), the SDK will automatically use the instance role credentials
+const baseConfig: any = {
+  region: process.env.AWS_REGION || process.env.REGION || 'us-east-1',
+};
+
+// Only use explicit credentials if both are provided (local development)
+if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  baseConfig.credentials = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  };
+}
+
 export const awsConfig = {
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
-  },
+  ...baseConfig,
   ...(isLocalStack && {
     endpoint: localStackEndpoint,
   }),
@@ -41,9 +51,11 @@ export const sesConfig = {
 };
 
 export const tableNames = {
-  sessions: process.env.DYNAMODB_TABLE_NAME || 'spec-wizard-sessions',
+  sessions: process.env.DYNAMODB_TABLE_NAME || 'fbuilder-sessions-dev',
 };
 
 export const bucketNames = {
-  exports: process.env.S3_BUCKET_NAME || 'spec-wizard-exports',
+  // Extract bucket name from ARN if S3_BUCKET_NAME is not set
+  exports: process.env.S3_BUCKET_NAME ||
+           (process.env.S3_BUCKET_ARN?.split(':')?.pop() || 'fbuilder-exports-dev-771551874768'),
 };
