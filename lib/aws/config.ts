@@ -4,27 +4,26 @@
  * Supports LocalStack for local development
  */
 
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+
 const isLocalStack = process.env.USE_LOCALSTACK === 'true';
 const localStackEndpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localhost:4566';
 
-// Base config - only include credentials if explicitly provided (for local development)
-// In production (Amplify), the SDK will automatically use the instance role credentials
+// Base config - use Node.js credential provider chain for Amplify/Lambda
+// This checks environment variables, ECS credentials, EC2 instance metadata, etc.
 const baseConfig: any = {
   region: process.env.AWS_REGION || process.env.REGION || 'us-east-1',
+  credentials: fromNodeProviderChain(),
 };
-
-// Only use explicit credentials if both are provided (local development)
-if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-  baseConfig.credentials = {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  };
-}
 
 export const awsConfig = {
   ...baseConfig,
   ...(isLocalStack && {
     endpoint: localStackEndpoint,
+    credentials: {
+      accessKeyId: 'test',
+      secretAccessKey: 'test',
+    },
   }),
 };
 
