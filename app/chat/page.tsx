@@ -134,10 +134,15 @@ function ChatPageContent() {
                   });
                 }
 
-                if (data.specification) {
-                  setSpecification(data.specification);
-                  setRecentlyUpdatedSections(['overview', 'features']);
-                  setTimeout(() => setRecentlyUpdatedSections([]), 3000);
+                // Handle completion event with specification data
+                if (data.type === 'complete' && data.data) {
+                  if (data.data.specification) {
+                    setSpecification(data.data.specification);
+                    if (data.data.specUpdated) {
+                      setRecentlyUpdatedSections(['overview', 'features']);
+                      setTimeout(() => setRecentlyUpdatedSections([]), 3000);
+                    }
+                  }
                 }
               } catch (e) {
                 // Ignore parsing errors for incomplete chunks

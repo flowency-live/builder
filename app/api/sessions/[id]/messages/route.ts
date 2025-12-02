@@ -157,10 +157,11 @@ export async function POST(
 
           await sessionManager.saveSessionState(sessionId, updatedState);
 
-          // Send completion event
+          // Send completion event with specification data
           const completionData = {
             messageId: assistantMessage.id,
             specUpdated,
+            specification: updatedSpecification,
             progress: updatedProgress,
             latency: Date.now() - startTime,
           };
