@@ -82,7 +82,8 @@ export async function POST(
       sessionId,
       updatedHistory,
       session.state.specification,
-      session.state.progress
+      session.state.progress,
+      session.state.lockedSections
     );
 
     // Process message and get streaming response
@@ -153,6 +154,7 @@ export async function POST(
             specification: updatedSpecification,
             progress: updatedProgress,
             userInfo: session.state.userInfo,
+            lockedSections: session.state.lockedSections,
           };
 
           await sessionManager.saveSessionState(sessionId, updatedState);

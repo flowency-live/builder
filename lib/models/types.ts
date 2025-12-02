@@ -101,6 +101,15 @@ export interface ContactInfo {
 }
 
 /**
+ * Locked PRD section - tracks what's been decided and can't be re-litigated
+ */
+export interface LockedSection {
+  name: string; // e.g., "Problem Statement", "Target Users", "Scope"
+  summary: string; // Bullet-point summary of what was locked in
+  lockedAt: Date;
+}
+
+/**
  * Session state containing all conversation and specification data
  */
 export interface SessionState {
@@ -108,6 +117,7 @@ export interface SessionState {
   specification: Specification;
   progress: ProgressState;
   userInfo?: ContactInfo;
+  lockedSections?: LockedSection[]; // Track what's been decided
 }
 
 /**

@@ -20,6 +20,11 @@ export interface ConversationContext {
   progressState?: any;
   projectType?: string;
   userIntent?: Record<string, any>;
+  lockedSections?: Array<{
+    name: string;
+    summary: string;
+    lockedAt: Date;
+  }>;
 }
 
 export class PromptManager {

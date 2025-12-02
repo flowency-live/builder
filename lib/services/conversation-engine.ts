@@ -5,7 +5,7 @@
 
 import { LLMRouter, StreamingResponse } from './llm-router';
 import { PromptManager, ConversationContext, ConversationStage } from './prompt-manager';
-import { Message, ProgressState, Specification } from '../models/types';
+import { Message, ProgressState, Specification, LockedSection } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { isEnglish, getNonEnglishMessage } from '../utils/language-detection';
 import { getRelevantExamples, formatExamplesForPrompt } from '../prompts/jason-examples';
@@ -109,8 +109,14 @@ export class ConversationEngine {
       context
     );
 
+    // Add locked sections to prevent re-litigation
+    const withLockedSections = this.enhancePromptWithLockedSections(
+      withRedundancyCheck,
+      (context as any).lockedSections
+    );
+
     // Add few-shot examples demonstrating Jason-style responses
-    const withExamples = this.enhancePromptWithExamples(withRedundancyCheck, stage);
+    const withExamples = this.enhancePromptWithExamples(withLockedSections, stage);
 
     // Add instruction for business-friendly language
     const finalPrompt = this.enhancePromptForBusinessLanguage(withExamples);
@@ -132,7 +138,8 @@ export class ConversationEngine {
     sessionId: string,
     conversationHistory: Message[],
     specification?: Specification,
-    progressState?: ProgressState
+    progressState?: ProgressState,
+    lockedSections?: LockedSection[]
   ): Promise<ConversationContext> {
     // Extract project type from conversation history or specification
     const projectType = this.extractProjectType(conversationHistory, specification);
@@ -140,9 +147,16 @@ export class ConversationEngine {
     // Extract user intent from conversation
     const userIntent = this.extractUserIntent(conversationHistory);
 
+    // Prune conversation history if it's getting too long
+    const prunedHistory = this.pruneConversationHistory(
+      conversationHistory,
+      lockedSections,
+      15 // Keep last 15 messages
+    );
+
     return {
       sessionId,
-      conversationHistory: conversationHistory.map((msg) => ({
+      conversationHistory: prunedHistory.map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
@@ -150,6 +164,7 @@ export class ConversationEngine {
       progressState,
       projectType,
       userIntent,
+      lockedSections,
     };
   }
 
@@ -539,5 +554,151 @@ LANGUAGE GUIDELINES:
 
     // Intent-focused if it has intent indicators and no implementation indicators
     return hasIntentIndicator && !hasImplementationIndicator;
+  }
+
+  /**
+   * Create a checkpoint (locked section) when a stage transition occurs
+   * This captures key decisions that shouldn't be re-litigated
+   */
+  createCheckpoint(
+    sectionName: string,
+    specification?: Specification,
+    progress?: ProgressState
+  ): LockedSection | null {
+    if (!specification) return null;
+
+    const summary = this.generateCheckpointSummary(sectionName, specification, progress);
+    if (!summary) return null;
+
+    return {
+      name: sectionName,
+      summary,
+      lockedAt: new Date(),
+    };
+  }
+
+  /**
+   * Generate a concise summary for a checkpoint
+   */
+  private generateCheckpointSummary(
+    sectionName: string,
+    specification: Specification,
+    progress?: ProgressState
+  ): string | null {
+    const spec = specification.plainEnglishSummary;
+
+    switch (sectionName) {
+      case 'Problem Statement':
+        return spec.overview ? `Problem: ${spec.overview.split('.')[0]}` : null;
+
+      case 'Target Users':
+        return spec.targetUsers ? `Users: ${spec.targetUsers}` : null;
+
+      case 'Scope':
+        const features = spec.keyFeatures?.slice(0, 3).join(', ');
+        return features ? `Core features: ${features}` : null;
+
+      case 'Integrations':
+        const integrations = spec.integrations?.join(', ');
+        return integrations ? `Integrations: ${integrations}` : null;
+
+      case 'Project Type':
+        const complexity = spec.estimatedComplexity;
+        return complexity ? `Complexity: ${complexity}` : null;
+
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Determine if we should create a checkpoint based on stage transition
+   */
+  shouldCreateCheckpoint(
+    previousStage: ConversationStage,
+    currentStage: ConversationStage
+  ): { shouldCreate: boolean; sectionName?: string } {
+    // Map stage transitions to PRD sections that should be locked
+    const checkpointMap: Record<string, string> = {
+      'initial->discovery': 'Problem Statement',
+      'discovery->refinement': 'Target Users & Scope',
+      'refinement->validation': 'Requirements',
+      'validation->completion': 'Full Specification',
+    };
+
+    const transitionKey = `${previousStage}->${currentStage}`;
+    const sectionName = checkpointMap[transitionKey];
+
+    return {
+      shouldCreate: !!sectionName,
+      sectionName,
+    };
+  }
+
+  /**
+   * Prune conversation history while preserving recent messages
+   * This prevents token limit issues while maintaining context
+   */
+  pruneConversationHistory(
+    conversationHistory: Message[],
+    lockedSections?: LockedSection[],
+    maxRecentMessages: number = 15
+  ): Message[] {
+    // If conversation is short, don't prune
+    if (conversationHistory.length <= maxRecentMessages) {
+      return conversationHistory;
+    }
+
+    // Keep only the most recent messages
+    const recentMessages = conversationHistory.slice(-maxRecentMessages);
+
+    // Create a synthetic "checkpoint" message summarizing locked decisions
+    if (lockedSections && lockedSections.length > 0) {
+      const checkpointMessage: Message = {
+        id: uuidv4(),
+        role: 'system',
+        content: this.formatLockedSectionsAsMessage(lockedSections),
+        timestamp: new Date(),
+      };
+
+      // Insert checkpoint at the beginning
+      return [checkpointMessage, ...recentMessages];
+    }
+
+    return recentMessages;
+  }
+
+  /**
+   * Format locked sections as a system message
+   */
+  private formatLockedSectionsAsMessage(lockedSections: LockedSection[]): string {
+    const sections = lockedSections
+      .map((section) => `${section.name}: ${section.summary}`)
+      .join('\n');
+
+    return `LOCKED IN DECISIONS (do not re-litigate):\n${sections}`;
+  }
+
+  /**
+   * Enhance prompt with locked sections to prevent re-litigation
+   */
+  enhancePromptWithLockedSections(
+    prompt: string,
+    lockedSections?: LockedSection[]
+  ): string {
+    if (!lockedSections || lockedSections.length === 0) {
+      return prompt;
+    }
+
+    const formattedSections = lockedSections
+      .map((section) => `- ${section.name}: ${section.summary}`)
+      .join('\n');
+
+    return `${prompt}
+
+LOCKED IN DECISIONS (these are final, do not revisit or re-litigate):
+${formattedSections}
+
+Build on these locked decisions. If the user tries to change something fundamental that's locked, acknowledge what was decided and ask if they want to revise the entire specification.`;
   }
 }

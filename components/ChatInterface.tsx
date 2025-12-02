@@ -18,6 +18,7 @@ export default function ChatInterface({
   messages,
   isStreaming,
   onOpenSpec,
+  onRequestSummary,
 }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
