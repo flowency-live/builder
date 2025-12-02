@@ -29,6 +29,13 @@ export default function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-focus input after AI response completes
+  useEffect(() => {
+    if (!isStreaming) {
+      inputRef.current?.focus();
+    }
+  }, [isStreaming]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isStreaming) {
@@ -75,15 +82,9 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--color-background)]">
-      {/* Header */}
-      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse" />
-          <h1 className="text-lg font-semibold text-[var(--color-foreground)]">
-            Flowency Build
-          </h1>
-        </div>
+    <div className="flex flex-col h-screen bg-[var(--color-background)] pt-16">
+      {/* Action Buttons Header */}
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 flex items-center justify-end">
         <div className="flex items-center space-x-2">
           {onOpenSpec && (
             <button
