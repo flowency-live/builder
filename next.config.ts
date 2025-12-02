@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
     FBUILDER_AWS_ACCESS_KEY_ID: process.env.FBUILDER_AWS_ACCESS_KEY_ID,
     FBUILDER_AWS_SECRET_ACCESS_KEY: process.env.FBUILDER_AWS_SECRET_ACCESS_KEY,
     DYNAMODB_TABLE_NAME: process.env.DYNAMODB_TABLE_NAME,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   },
 
   // Security headers
