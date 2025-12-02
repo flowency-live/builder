@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-background)]">
+    <div className="flex flex-col bg-[var(--color-background)]">
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-4xl w-full space-y-12 animate-fade-in">
           {/* Hero Section */}
           <div className="text-center space-y-6">
@@ -157,33 +157,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-[var(--color-border)] py-8 px-4">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 text-sm text-[var(--color-muted-foreground)]">
-          <div className="flex items-center space-x-2">
-            <span>Powered by</span>
-            <span className="font-semibold text-[var(--color-secondary)]">
-              FlowencyBuild
-            </span>
-          </div>
-          <div className="flex space-x-6">
-            <Link
-              href="/terms"
-              className="hover:text-[var(--color-primary)] transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/privacy"
-              className="hover:text-[var(--color-primary)] transition-colors"
-            >
-              Privacy Policy
-            </Link>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }
