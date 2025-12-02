@@ -52,69 +52,104 @@ const EARS_PATTERNS = {
 };
 
 export class SpecificationGenerator {
+  private llmRouter?: any;
+
+  constructor(llmRouter?: any) {
+    this.llmRouter = llmRouter;
+  }
+
   /**
-   * Extract information from user message and assistant response
-   * This is a simplified version - in production, this would use LLM
+   * Extract information from user message and assistant response using LLM
    */
   async extractInformation(
     userMessage: string,
     assistantResponse: string,
     context: any
   ): Promise<ExtractedInformation | null> {
-    const lowerUser = userMessage.toLowerCase();
-    const lowerAssistant = assistantResponse.toLowerCase();
+    // If no LLM router provided, fall back to basic extraction
+    if (!this.llmRouter) {
+      return this.basicExtraction(userMessage, assistantResponse);
+    }
 
-    // Detect topic based on keywords
+    try {
+      const extractionPrompt = `You are analyzing a conversation between a user and an AI assistant about building software. Extract structured information from this exchange to update a product specification.
+
+User said: "${userMessage}"
+Assistant responded: "${assistantResponse}"
+
+Analyze this exchange and extract any specification-relevant information. Return a JSON object with this structure:
+{
+  "hasRelevantInfo": boolean,
+  "topic": "overview" | "features" | "users" | "data" | "workflows" | "integrations" | "nfrs" | "general",
+  "data": {
+    "overview": "string if project overview info present",
+    "features": ["array of specific features mentioned"],
+    "targetUsers": "description of target users if mentioned",
+    "dataPoints": ["specific data fields mentioned like 'flight numbers', 'dates', 'times']",
+    "viewsOrScreens": ["UI views mentioned like 'calendar view', 'agenda view']",
+    "requirements": ["specific functional requirements"],
+    "nonFunctionalRequirements": [{"category": "Performance|Security|Scalability|etc", "description": "specific requirement"}],
+    "integrations": ["external systems mentioned"],
+    "technicalTerms": {"term": "definition"}
+  },
+  "confidence": number between 0 and 1
+}
+
+Only include fields in "data" where actual information was provided. Be specific and detailed.`;
+
+      const response = await this.llmRouter.complete({
+        messages: [
+          {
+            role: 'user',
+            content: extractionPrompt
+          }
+        ],
+        model: 'claude-3-5-haiku-20241022',
+        temperature: 0.3,
+        maxTokens: 2000,
+      });
+
+      const extracted = JSON.parse(response.content);
+
+      if (!extracted.hasRelevantInfo) {
+        return null;
+      }
+
+      return {
+        topic: extracted.topic,
+        data: extracted.data,
+        confidence: extracted.confidence,
+      };
+    } catch (error) {
+      console.error('LLM extraction failed, falling back to basic:', error);
+      return this.basicExtraction(userMessage, assistantResponse);
+    }
+  }
+
+  /**
+   * Basic keyword-based extraction as fallback
+   */
+  private basicExtraction(userMessage: string, assistantResponse: string): ExtractedInformation | null {
+    const lowerUser = userMessage.toLowerCase();
     let topic = 'general';
     const data: Record<string, any> = {};
-    let confidence = 0.5;
 
     // Check for overview/project description
-    if (
-      lowerUser.includes('build') ||
-      lowerUser.includes('create') ||
-      lowerUser.includes('want') ||
-      lowerUser.includes('need')
-    ) {
+    if (lowerUser.includes('build') || lowerUser.includes('create') || lowerUser.includes('want')) {
       topic = 'overview';
-      data.description = userMessage;
-      confidence = 0.7;
+      data.overview = userMessage;
     }
-
     // Check for features
-    if (
-      lowerUser.includes('feature') ||
-      lowerUser.includes('functionality') ||
-      lowerUser.includes('should be able to')
-    ) {
+    else if (lowerUser.includes('feature') || lowerUser.includes('view') || lowerUser.includes('display')) {
       topic = 'features';
-      data.feature = userMessage;
-      confidence = 0.8;
+      data.features = [userMessage];
     }
-
     // Check for users
-    if (
-      lowerUser.includes('user') ||
-      lowerUser.includes('customer') ||
-      lowerUser.includes('audience')
-    ) {
+    else if (lowerUser.includes('user') || lowerUser.includes('customer') || lowerUser.includes('crew')) {
       topic = 'users';
-      data.description = userMessage;
-      confidence = 0.7;
+      data.targetUsers = userMessage;
     }
 
-    // Check for integrations
-    if (
-      lowerUser.includes('integrate') ||
-      lowerUser.includes('connect') ||
-      lowerUser.includes('api')
-    ) {
-      topic = 'integrations';
-      data.integration = userMessage;
-      confidence = 0.8;
-    }
-
-    // Only return if we have meaningful data
     if (Object.keys(data).length === 0) {
       return null;
     }
@@ -122,7 +157,7 @@ export class SpecificationGenerator {
     return {
       topic,
       data,
-      confidence,
+      confidence: 0.5,
     };
   }
 
@@ -298,7 +333,7 @@ export class SpecificationGenerator {
     switch (topic.toLowerCase()) {
       case 'overview':
       case 'project overview':
-        updated.overview = data.description || data.overview || data.text || '';
+        updated.overview = data.description || data.overview || data.text || updated.overview;
         break;
 
       case 'features':
@@ -308,11 +343,19 @@ export class SpecificationGenerator {
         } else if (data.feature) {
           updated.keyFeatures = [...new Set([...updated.keyFeatures, data.feature])];
         }
+        // Also add views/screens as features
+        if (data.viewsOrScreens && Array.isArray(data.viewsOrScreens)) {
+          updated.keyFeatures = [...new Set([...updated.keyFeatures, ...data.viewsOrScreens])];
+        }
+        // Add data points as features
+        if (data.dataPoints && Array.isArray(data.dataPoints)) {
+          updated.keyFeatures = [...new Set([...updated.keyFeatures, ...data.dataPoints.map((dp: string) => `Display ${dp}`)])];
+        }
         break;
 
       case 'users':
       case 'target users':
-        updated.targetUsers = data.description || data.users || data.text || '';
+        updated.targetUsers = data.description || data.users || data.targetUsers || data.text || updated.targetUsers;
         break;
 
       case 'integrations':
@@ -321,6 +364,18 @@ export class SpecificationGenerator {
         } else if (data.integration) {
           updated.integrations = [...new Set([...updated.integrations, data.integration])];
         }
+        break;
+
+      case 'nfrs':
+      case 'non-functional requirements':
+        // NFRs don't go in plain English summary
+        break;
+
+      default:
+        // For general topic, try to extract whatever we can
+        if (data.overview) updated.overview = data.overview;
+        if (data.features) updated.keyFeatures = [...new Set([...updated.keyFeatures, ...data.features])];
+        if (data.targetUsers) updated.targetUsers = data.targetUsers;
         break;
     }
 

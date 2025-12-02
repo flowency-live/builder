@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ChatInterface from '@/components/ChatInterface';
 import { SpecPreviewPanel } from '@/components/SpecPreviewPanel';
+import { ExportModal } from '@/components/ExportModal';
 import { Message, Specification } from '@/lib/models/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +17,7 @@ function ChatPageContent() {
   const [specification, setSpecification] = useState<Specification | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'simple' | 'detailed'>('simple');
   const [recentlyUpdatedSections, setRecentlyUpdatedSections] = useState<string[]>([]);
 
@@ -71,6 +73,30 @@ function ChatPageContent() {
     handleMessageSent(
       "Can you provide a summary of what we've covered so far in my specification, highlight any important topics we haven't discussed yet, and suggest next steps?"
     );
+  };
+
+  const handleExport = () => {
+    setIsExportModalOpen(true);
+  };
+
+  const handleShare = async () => {
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/magic-link`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const link = data.sessionUrl;
+        await navigator.clipboard.writeText(link);
+        alert(`Link copied to clipboard!\n\nShare this link:\n${link}\n\nAnyone with this link can view and continue this specification.`);
+      } else {
+        alert('Failed to generate share link. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating share link:', error);
+      alert('Failed to generate share link. Please try again.');
+    }
   };
 
   const handleMessageSent = async (content: string) => {
@@ -200,7 +226,18 @@ function ChatPageContent() {
           onViewModeChange={setViewMode}
           isOpen={isPreviewOpen}
           onToggle={() => setIsPreviewOpen(!isPreviewOpen)}
+          onExport={handleExport}
+          onShare={handleShare}
           recentlyUpdatedSections={recentlyUpdatedSections}
+        />
+      )}
+
+      {specification && (
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          sessionId={sessionId}
+          specification={specification}
         />
       )}
     </div>

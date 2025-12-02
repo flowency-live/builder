@@ -29,10 +29,10 @@ export default function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Auto-focus input after AI response completes
+  // Auto-focus input after AI response completes (without scrolling)
   useEffect(() => {
     if (!isStreaming) {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
   }, [isStreaming]);
 
@@ -41,7 +41,7 @@ export default function ChatInterface({
     if (inputValue.trim() && !isStreaming) {
       onMessageSent(inputValue.trim());
       setInputValue('');
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
   };
 
