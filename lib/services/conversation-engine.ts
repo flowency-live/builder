@@ -8,6 +8,7 @@ import { PromptManager, ConversationContext, ConversationStage } from './prompt-
 import { Message, ProgressState, Specification } from '../models/types';
 import { v4 as uuidv4 } from 'uuid';
 import { isEnglish, getNonEnglishMessage } from '../utils/language-detection';
+import { getRelevantExamples, formatExamplesForPrompt } from '../prompts/jason-examples';
 
 export interface ExtractedInformation {
   topic: string;
@@ -103,13 +104,16 @@ export class ConversationEngine {
     );
 
     // Add instruction to avoid redundant questions
-    const enhancedPrompt = this.enhancePromptWithRedundancyCheck(
+    const withRedundancyCheck = this.enhancePromptWithRedundancyCheck(
       systemPrompt,
       context
     );
 
+    // Add few-shot examples demonstrating Jason-style responses
+    const withExamples = this.enhancePromptWithExamples(withRedundancyCheck, stage);
+
     // Add instruction for business-friendly language
-    const finalPrompt = this.enhancePromptForBusinessLanguage(enhancedPrompt);
+    const finalPrompt = this.enhancePromptForBusinessLanguage(withExamples);
 
     // Send request to LLM
     const response = await this.llmRouter.sendRequest(
@@ -234,6 +238,16 @@ IMPORTANT: The user has already provided the following information. DO NOT ask a
 ${infoSummary}
 
 Build on this information with new, contextual questions.`;
+  }
+
+  /**
+   * Enhance prompt with few-shot Jason-style examples
+   */
+  private enhancePromptWithExamples(prompt: string, stage: ConversationStage): string {
+    const examples = getRelevantExamples(stage, 2);
+    const formattedExamples = formatExamplesForPrompt(examples);
+
+    return `${prompt}${formattedExamples}`;
   }
 
   /**
