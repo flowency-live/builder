@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sessionManager } from '@/lib/services/session-manager';
+import { sessionManager } from '@/lib/services/session-manager-postgres';
 
 /**
  * POST /api/sessions/[id]/abandon
