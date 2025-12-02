@@ -81,6 +81,28 @@ export default function ChatInterface({
     alert('Contact form will be implemented in a future task');
   };
 
+  // Parse quick response options from message content
+  const parseQuickOptions = (content: string): { text: string; options: string[] } | null => {
+    const match = content.match(/Quick options:\s*(.+)$/im);
+    if (!match) return null;
+
+    const optionsText = match[1];
+    const options = optionsText
+      .split('|')
+      .map(opt => opt.trim().replace(/^\[|\]$/g, ''))
+      .filter(opt => opt.length > 0);
+
+    const text = content.replace(/Quick options:\s*.+$/im, '').trim();
+    return { text, options };
+  };
+
+  // Handle quick option button click
+  const handleQuickOption = (option: string) => {
+    if (!isStreaming) {
+      onMessageSent(option);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[var(--color-background)] pt-16">
       {/* Action Buttons Header */}
@@ -190,39 +212,63 @@ export default function ChatInterface({
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-[var(--radius-lg)] px-4 py-3 ${
-                    message.role === 'user'
-                      ? 'bg-[var(--color-primary)] text-white'
-                      : message.role === 'system'
-                      ? 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20'
-                      : 'bg-[var(--color-surface)] text-[var(--color-foreground)] border border-[var(--color-border)]'
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap break-words">
-                    {message.content}
+            {messages.map((message) => {
+              const quickOptions = message.role === 'assistant' ? parseQuickOptions(message.content) : null;
+              const displayContent = quickOptions ? quickOptions.text : message.content;
+
+              return (
+                <div key={message.id}>
+                  <div
+                    className={`flex ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-[var(--radius-lg)] px-4 py-3 ${
+                        message.role === 'user'
+                          ? 'bg-[var(--color-primary)] text-white'
+                          : message.role === 'system'
+                          ? 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20'
+                          : 'bg-[var(--color-surface)] text-[var(--color-foreground)] border border-[var(--color-border)]'
+                      }`}
+                    >
+                      <div className="whitespace-pre-wrap break-words">
+                        {displayContent}
+                      </div>
+                      {message.metadata?.specUpdated && (
+                        <div className="mt-2 pt-2 border-t border-current/20 text-xs opacity-75">
+                          ✓ Specification updated
+                        </div>
+                      )}
+                      <div className="mt-1 text-xs opacity-60">
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  {message.metadata?.specUpdated && (
-                    <div className="mt-2 pt-2 border-t border-current/20 text-xs opacity-75">
-                      ✓ Specification updated
+
+                  {/* Quick Response Buttons */}
+                  {quickOptions && quickOptions.options.length > 0 && (
+                    <div className="flex justify-start mt-2 ml-2">
+                      <div className="flex flex-wrap gap-2 max-w-[80%]">
+                        {quickOptions.options.map((option, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleQuickOption(option)}
+                            disabled={isStreaming}
+                            className="px-4 py-2 text-sm bg-[var(--color-surface)] text-[var(--color-foreground)] border border-[var(--color-border)] rounded-[var(--radius-md)] hover:bg-[var(--color-primary)]/10 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  <div className="mt-1 text-xs opacity-60">
-                    {new Date(message.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {isStreaming && (
               <div className="flex justify-start">
                 <div className="max-w-[80%] rounded-[var(--radius-lg)] px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-border)]">
