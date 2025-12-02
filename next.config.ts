@@ -2,7 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  
+
+  // Expose environment variables to server-side runtime (API routes)
+  env: {
+    API_GATEWAY_URL: process.env.API_GATEWAY_URL,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  },
+
   // Security headers
   async headers() {
     return [
