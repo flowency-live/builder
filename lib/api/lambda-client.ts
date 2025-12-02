@@ -20,7 +20,16 @@ async function callLambda<T = any>(
   options: RequestInit = {}
 ): Promise<LambdaResponse<T>> {
   try {
+    if (!API_GATEWAY_URL) {
+      console.error('API_GATEWAY_URL is not configured');
+      return {
+        success: false,
+        error: 'API_GATEWAY_URL environment variable is not set',
+      };
+    }
+
     const url = `${API_GATEWAY_URL}${path}`;
+    console.log('Calling Lambda:', url);
 
     const response = await fetch(url, {
       ...options,
@@ -33,6 +42,7 @@ async function callLambda<T = any>(
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('Lambda returned error:', response.status, data);
       return {
         success: false,
         error: data.error || `HTTP ${response.status}: ${response.statusText}`,
