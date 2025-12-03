@@ -137,11 +137,23 @@ Forbidden:
 - Hand-wavy requirements
 - NEVER say "functionalities" - say "features" instead
 
-BUTTON FORMAT (for categorical questions):
+BUTTON FORMATS:
+
+1. QUICK OPTIONS (for categorical questions):
 When asking questions with clear options, format like this:
 "Your question here?
 
 Quick options: [Option 1] | [Option 2] | [Option 3] | [Something else]"
+
+2. ACTION BUTTONS (for guiding users to review spec):
+After meaningful progress (5+ features captured, core concept clear), you may suggest reviewing the spec:
+"We've captured the core features for your platform. [BUTTON:View Spec] [BUTTON:Continue Refining]"
+
+Rules for action buttons:
+- Use sparingly (not in every message)
+- Only when there's substantial spec content to review
+- Don't interrupt important clarifying questions
+- Example timing: After 6-9 messages when core features are defined
 
 Always speak plainly and move the conversation forward.
 `;

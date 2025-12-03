@@ -96,10 +96,42 @@ export default function ChatInterface({
     return { text, options };
   };
 
+  // Parse action buttons from message content
+  const parseActionButtons = (content: string): { text: string; buttons: string[] } | null => {
+    const buttonRegex = /\[BUTTON:([^\]]+)\]/g;
+    const buttons: string[] = [];
+    let match;
+
+    while ((match = buttonRegex.exec(content)) !== null) {
+      buttons.push(match[1]);
+    }
+
+    if (buttons.length === 0) return null;
+
+    // Remove button markers from text
+    const text = content.replace(/\[BUTTON:[^\]]+\]/g, '').trim();
+    return { text, buttons };
+  };
+
   // Handle quick option button click
   const handleQuickOption = (option: string) => {
     if (!isStreaming) {
       onMessageSent(option);
+    }
+  };
+
+  // Handle action button click
+  const handleActionButton = (button: string) => {
+    switch (button) {
+      case 'View Spec':
+        onOpenSpec?.();
+        break;
+      case 'Continue Refining':
+        // Just focus the input - user continues chatting
+        inputRef.current?.focus();
+        break;
+      default:
+        console.warn(`Unknown action button: ${button}`);
     }
   };
 
@@ -214,7 +246,15 @@ export default function ChatInterface({
           <>
             {messages.map((message) => {
               const quickOptions = message.role === 'assistant' ? parseQuickOptions(message.content) : null;
-              const displayContent = quickOptions ? quickOptions.text : message.content;
+              const actionButtons = message.role === 'assistant' ? parseActionButtons(message.content) : null;
+
+              // Apply parsers in order: action buttons first, then quick options
+              let displayContent = message.content;
+              if (actionButtons) {
+                displayContent = actionButtons.text;
+              } else if (quickOptions) {
+                displayContent = quickOptions.text;
+              }
 
               return (
                 <div key={message.id}>
@@ -248,6 +288,33 @@ export default function ChatInterface({
                       </div>
                     </div>
                   </div>
+
+                  {/* Action Buttons */}
+                  {actionButtons && actionButtons.buttons.length > 0 && (
+                    <div className="flex justify-start mt-3 ml-2">
+                      <div className="flex flex-wrap gap-3 max-w-[80%]">
+                        {actionButtons.buttons.map((button, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleActionButton(button)}
+                            className="px-5 py-2.5 text-sm font-medium bg-[var(--color-primary)] text-white rounded-[var(--radius-md)] hover:bg-[var(--color-primary-dark)] transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                          >
+                            {button === 'View Spec' && (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            )}
+                            {button === 'Continue Refining' && (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                              </svg>
+                            )}
+                            {button}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Quick Response Buttons */}
                   {quickOptions && quickOptions.options.length > 0 && (
