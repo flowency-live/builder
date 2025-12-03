@@ -222,13 +222,16 @@ export class ConversationEngine {
     const messageCount = context.conversationHistory.length;
     const completeness = context.progressState?.overallCompleteness || 0;
 
+    // CRITICAL: Never complete before 20 messages (safeguard against premature completion)
+    const MIN_MESSAGES_FOR_COMPLETION = 20;
+
     if (messageCount === 0) {
       return 'initial';
     } else if (completeness < 30) {
       return 'discovery';
     } else if (completeness < 70) {
       return 'refinement';
-    } else if (completeness < 90) {
+    } else if (completeness < 95 || messageCount < MIN_MESSAGES_FOR_COMPLETION) {
       return 'validation';
     } else {
       return 'completion';

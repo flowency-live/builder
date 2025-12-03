@@ -308,17 +308,17 @@ export class ProgressTracker {
     switch (topicId) {
       case 'overview':
         if (!summary.overview) return 'not-started';
-        if (summary.overview.length < 20) return 'in-progress';
+        if (summary.overview.length < 100) return 'in-progress';
         return 'complete';
 
       case 'users':
         if (!summary.targetUsers) return 'not-started';
-        if (summary.targetUsers.length < 10) return 'in-progress';
+        if (summary.targetUsers.length < 50) return 'in-progress';
         return 'complete';
 
       case 'features':
         if (summary.keyFeatures.length === 0) return 'not-started';
-        if (summary.keyFeatures.length < 3) return 'in-progress';
+        if (summary.keyFeatures.length < 8) return 'in-progress';
         return 'complete';
 
       case 'integrations':
@@ -460,7 +460,7 @@ export class ProgressTracker {
 
     // Only count required topics for completeness
     const requiredTopics = topics.filter((t) => t.required);
-    if (requiredTopics.length === 0) return 100;
+    if (requiredTopics.length === 0) return 0;
 
     const completedCount = requiredTopics.filter((t) => t.status === 'complete').length;
     const inProgressCount = requiredTopics.filter((t) => t.status === 'in-progress').length;
