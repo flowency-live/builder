@@ -70,8 +70,18 @@ export class PRDEngine {
 
       console.log(`[PRD ENGINE] Response length: ${response.content.length} chars`);
 
-      // Parse JSON response
-      const result = JSON.parse(response.content);
+      // Parse JSON response (strip markdown code fences if present)
+      let jsonContent = response.content.trim();
+
+      // Handle markdown-wrapped JSON (OpenAI often wraps responses in ```json ... ```)
+      if (jsonContent.startsWith('```')) {
+        jsonContent = jsonContent
+          .replace(/^```(?:json)?\s*/, '')  // Remove opening fence (```json or ```)
+          .replace(/```\s*$/, '');           // Remove closing fence
+        console.log('[PRD ENGINE] Stripped markdown code fences from response');
+      }
+
+      const result = JSON.parse(jsonContent);
 
       console.log(`[PRD ENGINE] Parsed successfully, missingSections: ${result.missingSections?.join(', ') || 'none'}`);
 
