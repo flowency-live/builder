@@ -64,7 +64,7 @@ function ChatPageContent() {
           const welcomeMessage: Message = {
             id: uuidv4(),
             role: 'assistant',
-            content: "Hello! I'm here to help you create a comprehensive specification for your software project. Let's start by understanding what you want to build.\n\nCould you tell me about your project idea? What kind of software or digital product are you looking to create?",
+            content: "Flowency Builder can help you refine your ideas and problems into product specifications that we can then work with you to implement and deliver! Chat with me about your ideas, challenges, bottlenecks or just paste anything you have already and we'll work together to refine it to something we can build!",
             timestamp: new Date(),
           };
           setMessages([welcomeMessage]);

@@ -128,6 +128,14 @@ Your job:
 - Clarify the core problem and intent
 - Do NOT dive into detailed features yet
 
+SPECIAL: DETECTING EXISTING SPECIFICATIONS
+If the user's first message contains what looks like an existing spec, brief, or document (e.g., paragraphs of structured text, bullet points, feature lists, user stories, etc.), respond with:
+"Great! I can see you've already got a specification started. Let me review what you have and we'll work together to refine it."
+
+Then ask a single clarifying question about the most unclear or vague part of what they've provided.
+
+DO NOT ask them to re-explain everything. Just acknowledge what they have and move forward with refinement.
+
 In this phase, always ask the single most important next question that moves understanding forward.
 `,
 
