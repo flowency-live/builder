@@ -257,10 +257,10 @@ export class ExportService {
         month: 'long', 
         day: 'numeric' 
       })}</p>
-      <p>Last Updated: ${lastUpdated.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      <p>Last Updated: ${new Date(lastUpdated).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       })}</p>
     </div>
   </div>
@@ -270,11 +270,7 @@ export class ExportService {
     <div class="section">
       <h2>Executive Summary</h2>
       <p>${plainEnglishSummary.overview || 'No overview provided yet.'}</p>
-      
-      ${plainEnglishSummary.estimatedComplexity ? `
-      <p><strong>Estimated Complexity:</strong> ${plainEnglishSummary.estimatedComplexity}</p>
-      ` : ''}
-      
+
       ${plainEnglishSummary.targetUsers ? `
       <p><strong>Target Users:</strong> ${plainEnglishSummary.targetUsers}</p>
       ` : ''}
@@ -292,13 +288,13 @@ export class ExportService {
     </div>
     ` : ''}
 
-    <!-- Integrations -->
-    ${plainEnglishSummary.integrations.length > 0 ? `
+    <!-- User Flows -->
+    ${plainEnglishSummary.flows.length > 0 ? `
     <div class="section">
-      <h2>Integrations</h2>
+      <h2>User Flows</h2>
       <ul class="feature-list">
-        ${plainEnglishSummary.integrations.map(integration => `
-          <li>${integration}</li>
+        ${plainEnglishSummary.flows.map(flow => `
+          <li>${flow}</li>
         `).join('')}
       </ul>
     </div>

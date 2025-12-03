@@ -31,18 +31,13 @@ export async function GET(
       success: true,
       session: {
         id: session.id,
-        createdAt: session.createdAt.toISOString(),
-        lastAccessedAt: session.lastAccessedAt.toISOString(),
+        createdAt: session.createdAt,
+        lastAccessedAt: session.lastAccessedAt,
         state: {
-          conversationHistory: session.state.conversationHistory.map((msg) => ({
-            ...msg,
-            timestamp: msg.timestamp.toISOString(),
-          })),
-          specification: {
-            ...session.state.specification,
-            lastUpdated: session.state.specification.lastUpdated.toISOString(),
-          },
-          progress: session.state.progress,
+          conversationHistory: session.state.conversationHistory,
+          specification: session.state.specification,
+          completeness: session.state.completeness,
+          lockedSections: session.state.lockedSections,
           userInfo: session.state.userInfo,
         },
       },

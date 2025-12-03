@@ -24,6 +24,8 @@ export default function ExportDemoPage() {
     plainEnglishSummary: {
       overview:
         'A modern task management application that helps teams collaborate effectively. The system will allow users to create, assign, and track tasks with real-time updates and notifications.',
+      targetUsers:
+        'Small to medium-sized teams (5-50 members) looking for a simple yet powerful task management solution',
       keyFeatures: [
         'Create and manage tasks with priorities and due dates',
         'Assign tasks to team members',
@@ -32,10 +34,32 @@ export default function ExportDemoPage() {
         'Dashboard with analytics and reporting',
         'Mobile-responsive design',
       ],
-      targetUsers:
-        'Small to medium-sized teams (5-50 members) looking for a simple yet powerful task management solution',
-      integrations: ['Slack', 'Google Calendar', 'Email (SMTP)', 'Zapier'],
-      estimatedComplexity: 'Medium',
+      flows: [
+        'User logs in → Views dashboard → Creates new task → Assigns to team member → Team member receives notification',
+        'Team member opens app → Views assigned tasks → Updates task status → System sends update notification',
+      ],
+      rulesAndConstraints: [
+        'Tasks must have a title and due date',
+        'Only team leads can delete tasks',
+        'Notifications must be sent within 5 seconds of task updates',
+      ],
+      nonFunctional: [
+        'System must support up to 1000 concurrent users',
+        'Page load times must be under 2 seconds',
+        'Must work on mobile devices',
+      ],
+      mvpDefinition: {
+        included: [
+          'Basic task creation and assignment',
+          'Email notifications',
+          'Simple dashboard',
+        ],
+        excluded: [
+          'Advanced analytics',
+          'Third-party integrations',
+          'Custom workflows',
+        ],
+      },
     },
     formalPRD: {
       introduction:
@@ -103,7 +127,7 @@ export default function ExportDemoPage() {
         },
       ],
     },
-    lastUpdated: new Date(),
+    lastUpdated: new Date().toISOString(),
   };
 
   return (

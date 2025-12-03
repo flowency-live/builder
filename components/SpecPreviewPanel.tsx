@@ -116,55 +116,124 @@ export function SpecPreviewPanel({
           </p>
         </section>
 
-        {/* Integrations Section */}
-        {plainEnglishSummary.integrations.length > 0 && (
+        {/* Flows Section */}
+        {plainEnglishSummary.flows && plainEnglishSummary.flows.length > 0 && (
           <section
             className={`p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)] ${
-              isRecentlyUpdated('integrations') ? 'ring-2 ring-[var(--color-primary)] animate-pulse-glow' : ''
+              isRecentlyUpdated('flows') ? 'ring-2 ring-[var(--color-primary)] animate-pulse-glow' : ''
             }`}
           >
             <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-3 flex items-center">
               <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Integrations
-              {isRecentlyUpdated('integrations') && (
+              User Flows
+              {isRecentlyUpdated('flows') && (
                 <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
               )}
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {plainEnglishSummary.integrations.map((integration, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-[var(--color-surface-elevated)] text-[var(--color-foreground)] rounded-full text-sm border border-[var(--color-border)]"
-                >
-                  {integration}
-                </span>
+            <ul className="space-y-2">
+              {plainEnglishSummary.flows.map((flow, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2 text-[var(--color-primary)]">→</span>
+                  <span className="text-[var(--color-foreground-muted)]">{flow}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
-        {/* Complexity Estimate */}
-        {plainEnglishSummary.estimatedComplexity && (
+        {/* Rules and Constraints */}
+        {plainEnglishSummary.rulesAndConstraints && plainEnglishSummary.rulesAndConstraints.length > 0 && (
+          <section
+            className={`p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)] ${
+              isRecentlyUpdated('rulesAndConstraints') ? 'ring-2 ring-[var(--color-primary)] animate-pulse-glow' : ''
+            }`}
+          >
+            <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Business Rules & Constraints
+              {isRecentlyUpdated('rulesAndConstraints') && (
+                <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
+              )}
+            </h3>
+            <ul className="space-y-2">
+              {plainEnglishSummary.rulesAndConstraints.map((rule, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2 text-[var(--color-primary)]">•</span>
+                  <span className="text-[var(--color-foreground-muted)]">{rule}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Non-Functional Requirements */}
+        {plainEnglishSummary.nonFunctional && plainEnglishSummary.nonFunctional.length > 0 && (
+          <section
+            className={`p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)] ${
+              isRecentlyUpdated('nonFunctional') ? 'ring-2 ring-[var(--color-primary)] animate-pulse-glow' : ''
+            }`}
+          >
+            <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Non-Functional Requirements
+              {isRecentlyUpdated('nonFunctional') && (
+                <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--color-primary)] text-white rounded-full">Updated</span>
+              )}
+            </h3>
+            <ul className="space-y-2">
+              {plainEnglishSummary.nonFunctional.map((req, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2 text-[var(--color-primary)]">•</span>
+                  <span className="text-[var(--color-foreground-muted)]">{req}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* MVP Definition */}
+        {plainEnglishSummary.mvpDefinition && (plainEnglishSummary.mvpDefinition.included.length > 0 || plainEnglishSummary.mvpDefinition.excluded.length > 0) && (
           <section className="p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)]">
             <h3 className="text-lg font-semibold text-[var(--color-foreground)] mb-3 flex items-center">
               <svg className="w-5 h-5 mr-2 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              Estimated Complexity
+              MVP Definition
             </h3>
-            <span
-              className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-                plainEnglishSummary.estimatedComplexity === 'Simple'
-                  ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]'
-                  : plainEnglishSummary.estimatedComplexity === 'Medium'
-                  ? 'bg-[var(--color-warning)]/20 text-[var(--color-warning)]'
-                  : 'bg-[var(--color-destructive)]/20 text-[var(--color-destructive)]'
-              }`}
-            >
-              {plainEnglishSummary.estimatedComplexity}
-            </span>
+            <div className="space-y-4">
+              {plainEnglishSummary.mvpDefinition.included.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--color-success)] mb-2">Included in MVP</h4>
+                  <ul className="space-y-1">
+                    {plainEnglishSummary.mvpDefinition.included.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2 text-[var(--color-success)]">✓</span>
+                        <span className="text-[var(--color-foreground-muted)]">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {plainEnglishSummary.mvpDefinition.excluded.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-[var(--color-foreground-muted)] mb-2">Excluded from MVP</h4>
+                  <ul className="space-y-1">
+                    {plainEnglishSummary.mvpDefinition.excluded.map((item, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2 text-[var(--color-foreground-muted)]">○</span>
+                        <span className="text-[var(--color-foreground-muted)]">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </section>
         )}
       </div>

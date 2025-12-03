@@ -80,7 +80,7 @@ export class SyncService {
     }
 
     const store = useSessionStore.getState();
-    const { sessionId, conversationHistory, specification, progress } = store;
+    const { sessionId, conversationHistory, specification, completeness } = store;
 
     // Nothing to sync if no session
     if (!sessionId) {
@@ -94,7 +94,8 @@ export class SyncService {
       const sessionState: SessionState = {
         conversationHistory,
         specification: specification!,
-        progress: progress!,
+        completeness: completeness!,
+        lockedSections: [],
       };
 
       // Call API to save session state

@@ -11,7 +11,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   Message,
   Specification,
-  ProgressState,
+  CompletenessState,
   SessionState,
 } from '../models/types';
 
@@ -23,16 +23,16 @@ interface SessionStore {
   sessionId: string | null;
   conversationHistory: Message[];
   specification: Specification | null;
-  progress: ProgressState | null;
+  completeness: CompletenessState | null;
   isLoading: boolean;
   isSyncing: boolean;
   lastSyncedAt: Date | null;
-  
+
   // Actions
   setSessionId: (sessionId: string) => void;
   addMessage: (message: Message) => void;
   updateSpecification: (specification: Specification) => void;
-  updateProgress: (progress: ProgressState) => void;
+  updateCompleteness: (completeness: CompletenessState) => void;
   setLoading: (isLoading: boolean) => void;
   setSyncing: (isSyncing: boolean) => void;
   setLastSyncedAt: (date: Date) => void;
@@ -51,7 +51,7 @@ const initialState = {
   sessionId: null,
   conversationHistory: [],
   specification: null,
-  progress: null,
+  completeness: null,
   isLoading: false,
   isSyncing: false,
   lastSyncedAt: null,
@@ -83,9 +83,9 @@ export const useSessionStore = create<SessionStore>()(
         set({ specification });
       },
 
-      // Update progress state
-      updateProgress: (progress: ProgressState) => {
-        set({ progress });
+      // Update completeness state
+      updateCompleteness: (completeness: CompletenessState) => {
+        set({ completeness });
       },
 
       // Set loading state
@@ -114,7 +114,7 @@ export const useSessionStore = create<SessionStore>()(
           sessionId,
           conversationHistory: state.conversationHistory,
           specification: state.specification,
-          progress: state.progress,
+          completeness: state.completeness,
           lastSyncedAt: new Date(),
         });
       },
@@ -142,7 +142,7 @@ export const useSessionStore = create<SessionStore>()(
         sessionId: state.sessionId,
         conversationHistory: state.conversationHistory,
         specification: state.specification,
-        progress: state.progress,
+        completeness: state.completeness,
         lastSyncedAt: state.lastSyncedAt,
       }),
     }

@@ -66,16 +66,7 @@ export default async function PresentationPage({ params }: PresentationPageProps
             <p className="text-gray-700 leading-relaxed">
               {specification.plainEnglishSummary.overview || 'No overview provided yet.'}
             </p>
-            
-            {specification.plainEnglishSummary.estimatedComplexity && (
-              <div className="mt-4">
-                <span className="font-semibold text-gray-900">Estimated Complexity: </span>
-                <span className="text-gray-700">
-                  {specification.plainEnglishSummary.estimatedComplexity}
-                </span>
-              </div>
-            )}
-            
+
             {specification.plainEnglishSummary.targetUsers && (
               <div className="mt-2">
                 <span className="font-semibold text-gray-900">Target Users: </span>
@@ -116,14 +107,14 @@ export default async function PresentationPage({ params }: PresentationPageProps
           </section>
         )}
 
-        {/* Integrations */}
-        {specification.plainEnglishSummary.integrations.length > 0 && (
+        {/* User Flows */}
+        {specification.plainEnglishSummary.flows.length > 0 && (
           <section className="bg-white rounded-lg shadow-md p-8 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 border-b-2 border-purple-500 pb-2">
-              Integrations
+              User Flows
             </h2>
             <ul className="space-y-3">
-              {specification.plainEnglishSummary.integrations.map((integration, index) => (
+              {specification.plainEnglishSummary.flows.map((flow, index) => (
                 <li key={index} className="flex items-start">
                   <svg
                     className="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-0.5"
@@ -138,7 +129,7 @@ export default async function PresentationPage({ params }: PresentationPageProps
                       d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
-                  <span className="text-gray-700">{integration}</span>
+                  <span className="text-gray-700">{flow}</span>
                 </li>
               ))}
             </ul>

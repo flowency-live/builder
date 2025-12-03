@@ -8,7 +8,7 @@
 import { useEffect, useCallback } from 'react';
 import { useSessionStore } from './session-store';
 import { syncService } from './sync-service';
-import type { Message, Specification, ProgressState } from '../models/types';
+import type { Message, Specification, CompletenessState } from '../models/types';
 
 /**
  * Hook for managing session state with automatic sync
@@ -18,14 +18,14 @@ export function useSession() {
     sessionId,
     conversationHistory,
     specification,
-    progress,
+    completeness,
     isLoading,
     isSyncing,
     lastSyncedAt,
     setSessionId,
     addMessage,
     updateSpecification,
-    updateProgress,
+    updateCompleteness,
     clearSession,
     getMessageCount,
     getLatestMessage,
@@ -79,7 +79,7 @@ export function useSession() {
         id: `${Date.now()}-${Math.random()}`,
         role,
         content,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
 
       // Add to local state immediately
@@ -105,14 +105,14 @@ export function useSession() {
   );
 
   /**
-   * Update progress and sync
+   * Update completeness and sync
    */
-  const updateProgressState = useCallback(
-    async (progressState: ProgressState) => {
-      updateProgress(progressState);
+  const updateCompletenessState = useCallback(
+    async (completenessState: CompletenessState) => {
+      updateCompleteness(completenessState);
       await syncService.syncToServer();
     },
-    [updateProgress]
+    [updateCompleteness]
   );
 
   /**
@@ -173,21 +173,21 @@ export function useSession() {
     sessionId,
     conversationHistory,
     specification,
-    progress,
+    completeness,
     isLoading,
     isSyncing,
     lastSyncedAt,
-    
+
     // Actions
     initializeSession,
     sendMessage,
     updateSpec,
-    updateProgressState,
+    updateCompletenessState,
     restoreSession,
     restoreFromMagicLink,
     generateMagicLink,
     abandonSession,
-    
+
     // Computed
     messageCount: getMessageCount(),
     latestMessage: getLatestMessage(),

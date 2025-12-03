@@ -23,7 +23,7 @@ export interface ConversationContext {
   lockedSections?: Array<{
     name: string;
     summary: string;
-    lockedAt: Date;
+    lockedAt: string;
   }>;
 }
 

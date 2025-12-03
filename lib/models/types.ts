@@ -4,13 +4,27 @@
  */
 
 /**
+ * Default sections that must be completed for a build-ready spec
+ * IMPORTANT: This is the single source of truth - use this constant everywhere
+ */
+export const DEFAULT_MISSING_SECTIONS = [
+  'overview',
+  'targetUsers',
+  'keyFeatures',
+  'flows',
+  'rulesAndConstraints',
+  'nonFunctional',
+  'mvpDefinition'
+] as const;
+
+/**
  * Message in a conversation
  */
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: Date;
+  timestamp: string; // ISO string
   metadata?: {
     specUpdated?: boolean;
     progressUpdated?: boolean;
@@ -19,13 +33,19 @@ export interface Message {
 
 /**
  * Plain English Summary - user-facing specification view
+ * v0.3: Spec-first architecture with flows, rules, and MVP definition
  */
 export interface PlainEnglishSummary {
   overview: string;
-  keyFeatures: string[];
   targetUsers: string;
-  integrations: string[];
-  estimatedComplexity?: 'Simple' | 'Medium' | 'Complex';
+  keyFeatures: string[];
+  flows: string[];
+  rulesAndConstraints: string[];
+  nonFunctional: string[];
+  mvpDefinition: {
+    included: string[];
+    excluded: string[];
+  };
 }
 
 /**
@@ -65,7 +85,7 @@ export interface Specification {
   version: number;
   plainEnglishSummary: PlainEnglishSummary;
   formalPRD: FormalPRD;
-  lastUpdated: Date;
+  lastUpdated: string; // ISO string
 }
 
 /**
@@ -106,7 +126,7 @@ export interface ContactInfo {
 export interface LockedSection {
   name: string; // e.g., "Problem Statement", "Target Users", "Scope"
   summary: string; // Bullet-point summary of what was locked in
-  lockedAt: Date;
+  lockedAt: string; // ISO string
 }
 
 /**
@@ -115,19 +135,19 @@ export interface LockedSection {
 export interface CompletenessState {
   missingSections: string[];
   readyForHandoff: boolean;
-  lastEvaluated: Date;
+  lastEvaluated: string; // ISO string
 }
 
 /**
  * Session state containing all conversation and specification data
+ * v0.3: Removed ProgressState, completeness is now required
  */
 export interface SessionState {
   conversationHistory: Message[];
   specification: Specification;
-  progress: ProgressState;
   userInfo?: ContactInfo;
-  lockedSections?: LockedSection[]; // Track what's been decided
-  completeness?: CompletenessState; // Track spec completeness and readiness
+  lockedSections?: LockedSection[];
+  completeness: CompletenessState; // Required in v0.3
 }
 
 /**
@@ -135,8 +155,8 @@ export interface SessionState {
  */
 export interface Session {
   id: string;
-  createdAt: Date;
-  lastAccessedAt: Date;
+  createdAt: string; // ISO string
+  lastAccessedAt: string; // ISO string
   state: SessionState;
   magicLinkToken?: string;
 }
@@ -149,7 +169,7 @@ export interface Submission {
   sessionId: string;
   contactInfo: ContactInfo;
   specificationVersion: number;
-  submittedAt: Date;
+  submittedAt: string; // ISO string
   status: 'pending' | 'reviewed' | 'quoted';
   referenceNumber: string;
 }

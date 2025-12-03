@@ -34,7 +34,7 @@ const CORE_PRD_TOPICS = [
   'overview',
   'users',
   'features',
-  'integrations',
+  'flows',
   'data',
   'workflows',
   'non-functional requirements',
@@ -87,9 +87,15 @@ Generate a JSON object with this structure:
 {
   "plainEnglishSummary": {
     "overview": "1-2 sentence elevator pitch describing what the product does and who it's for",
-    "keyFeatures": ["clean feature descriptions as bullet points"],
     "targetUsers": "clear description of who will use this",
-    "integrations": ["external systems/services mentioned"]
+    "keyFeatures": ["clean feature descriptions as bullet points"],
+    "flows": ["user workflow 1: describe key user journey", "workflow 2"],
+    "rulesAndConstraints": ["business rule 1", "constraint 1"],
+    "nonFunctional": ["performance expectation", "reliability need"],
+    "mvpDefinition": {
+      "included": ["core feature 1 for v1", "core feature 2"],
+      "excluded": ["future feature 1", "nice-to-have 1"]
+    }
   },
   "formalPRD": {
     "introduction": "professional introduction paragraph for the PRD",
@@ -143,12 +149,15 @@ Guidelines:
         version: 1,
         plainEnglishSummary: {
           overview: synthesized.plainEnglishSummary.overview || '',
-          keyFeatures: synthesized.plainEnglishSummary.keyFeatures || [],
           targetUsers: synthesized.plainEnglishSummary.targetUsers || '',
-          integrations: synthesized.plainEnglishSummary.integrations || [],
-          estimatedComplexity: this.estimateComplexityFromFeatures(
-            synthesized.plainEnglishSummary.keyFeatures?.length || 0
-          ),
+          keyFeatures: synthesized.plainEnglishSummary.keyFeatures || [],
+          flows: synthesized.plainEnglishSummary.flows || [],
+          rulesAndConstraints: synthesized.plainEnglishSummary.rulesAndConstraints || [],
+          nonFunctional: synthesized.plainEnglishSummary.nonFunctional || [],
+          mvpDefinition: synthesized.plainEnglishSummary.mvpDefinition || {
+            included: [],
+            excluded: [],
+          },
         },
         formalPRD: {
           introduction: synthesized.formalPRD.introduction || '',
@@ -167,7 +176,7 @@ Guidelines:
             })
           ),
         },
-        lastUpdated: new Date(),
+        lastUpdated: new Date().toISOString(),
       };
 
       return specification;
@@ -200,7 +209,7 @@ Assistant responded: "${assistantResponse}"
 Analyze this exchange and extract any specification-relevant information. Return a JSON object with this structure:
 {
   "hasRelevantInfo": boolean,
-  "topic": "overview" | "features" | "users" | "data" | "workflows" | "integrations" | "nfrs" | "general",
+  "topic": "overview" | "features" | "users" | "data" | "workflows" | "flows" | "nfrs" | "general",
   "data": {
     "overview": "string if project overview info present",
     "features": ["array of specific features mentioned"],
@@ -315,7 +324,7 @@ Only include fields in "data" where actual information was provided. Be specific
       version: newVersion,
       plainEnglishSummary: updatedSummary,
       formalPRD: updatedPRD,
-      lastUpdated: new Date(),
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -362,18 +371,17 @@ Only include fields in "data" where actual information was provided. Be specific
     // Extract target users from requirements
     const targetUsers = this.extractTargetUsersFromRequirements(formalPRD.requirements);
 
-    // Extract integrations from requirements
-    const integrations = this.extractIntegrationsFromRequirements(formalPRD.requirements);
-
-    // Estimate complexity based on requirements count and NFRs
-    const estimatedComplexity = this.estimateComplexity(formalPRD);
-
     return {
       overview,
-      keyFeatures,
       targetUsers,
-      integrations,
-      estimatedComplexity,
+      keyFeatures,
+      flows: [],
+      rulesAndConstraints: [],
+      nonFunctional: formalPRD.nonFunctionalRequirements.map(nfr => nfr.description),
+      mvpDefinition: {
+        included: [],
+        excluded: [],
+      },
     };
   }
 
@@ -426,9 +434,15 @@ Only include fields in "data" where actual information was provided. Be specific
       version: 1,
       plainEnglishSummary: {
         overview: '',
-        keyFeatures: [],
         targetUsers: '',
-        integrations: [],
+        keyFeatures: [],
+        flows: [],
+        rulesAndConstraints: [],
+        nonFunctional: [],
+        mvpDefinition: {
+          included: [],
+          excluded: [],
+        },
       },
       formalPRD: {
         introduction: '',
@@ -436,7 +450,7 @@ Only include fields in "data" where actual information was provided. Be specific
         requirements: [],
         nonFunctionalRequirements: [],
       },
-      lastUpdated: new Date(),
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -478,11 +492,12 @@ Only include fields in "data" where actual information was provided. Be specific
         updated.targetUsers = data.description || data.users || data.targetUsers || data.text || updated.targetUsers;
         break;
 
-      case 'integrations':
-        if (data.integrations && Array.isArray(data.integrations)) {
-          updated.integrations = [...new Set([...updated.integrations, ...data.integrations])];
-        } else if (data.integration) {
-          updated.integrations = [...new Set([...updated.integrations, data.integration])];
+      case 'flows':
+      case 'workflows':
+        if (data.flows && Array.isArray(data.flows)) {
+          updated.flows = [...new Set([...updated.flows, ...data.flows])];
+        } else if (data.flow) {
+          updated.flows = [...new Set([...updated.flows, data.flow])];
         }
         break;
 
@@ -859,8 +874,8 @@ Only include fields in "data" where actual information was provided. Be specific
       covered.push('features');
     }
 
-    if (specification.plainEnglishSummary.integrations.length > 0) {
-      covered.push('integrations');
+    if (specification.plainEnglishSummary.flows.length > 0) {
+      covered.push('flows');
     }
 
     // Check for data requirements in formal PRD

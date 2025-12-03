@@ -9,7 +9,6 @@ import { ConversationEngine } from '@/lib/services/conversation-engine';
 import { LLMRouter } from '@/lib/services/llm-router';
 import { PromptManager } from '@/lib/services/prompt-manager';
 import { SpecificationGenerator } from '@/lib/services/specification-generator';
-import { ProgressTracker } from '@/lib/services/progress-tracker';
 import { PRDEngine } from '@/lib/services/prd-engine';
 import { v4 as uuidv4 } from 'uuid';
 import type { Message, SessionState } from '@/lib/models/types';
@@ -32,7 +31,6 @@ const llmRouter = new LLMRouter({
 const promptManager = new PromptManager();
 const conversationEngine = new ConversationEngine(llmRouter, promptManager);
 const specificationGenerator = new SpecificationGenerator(llmRouter);
-const progressTracker = new ProgressTracker();
 const prdEngine = new PRDEngine(llmRouter);
 
 export async function POST(
@@ -73,7 +71,7 @@ export async function POST(
       id: uuidv4(),
       role: 'user',
       content: userMessageContent,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
 
     // Add user message to conversation history
@@ -84,7 +82,6 @@ export async function POST(
       sessionId,
       updatedHistory,
       session.state.specification,
-      session.state.progress,
       session.state.lockedSections
     );
 
@@ -120,7 +117,7 @@ export async function POST(
             id: uuidv4(),
             role: 'assistant',
             content: fullResponse,
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
           };
 
           // Update conversation history
@@ -136,16 +133,10 @@ export async function POST(
 
           console.log(`[SPEC] User message count: ${userMessageCount}, Should update: ${shouldUpdateSpec}`);
 
-          // Update progress (fast, synchronous calculation)
-          const updatedProgress = await progressTracker.updateProgress(
-            session.state.specification
-          );
-
           // Save conversation state immediately (no spec update yet)
           const updatedState: SessionState = {
             conversationHistory: finalHistory,
             specification: session.state.specification,
-            progress: updatedProgress,
             userInfo: session.state.userInfo,
             lockedSections: session.state.lockedSections,
             completeness: session.state.completeness,
@@ -159,7 +150,6 @@ export async function POST(
             specUpdated: false, // Will update async if needed
             specification: session.state.specification,
             completeness: session.state.completeness,
-            progress: updatedProgress,
             latency: Date.now() - startTime,
           };
 
@@ -191,7 +181,7 @@ export async function POST(
                   ...prdResult.spec,
                   id: session.state.specification.id,
                   version: session.state.specification.version + 1,
-                  lastUpdated: new Date()
+                  lastUpdated: new Date().toISOString()
                 };
 
                 // Calculate readyForHandoff in TypeScript (deterministic)
@@ -205,17 +195,13 @@ export async function POST(
                 const updatedCompleteness = {
                   missingSections,
                   readyForHandoff,
-                  lastEvaluated: new Date(),
+                  lastEvaluated: new Date().toISOString(),
                 };
-
-                // Update progress with new spec
-                const finalProgress = await progressTracker.updateProgress(updatedSpecification);
 
                 // Save updated spec to session
                 const finalState: SessionState = {
                   conversationHistory: finalHistory,
                   specification: updatedSpecification,
-                  progress: finalProgress,
                   userInfo: session.state.userInfo,
                   lockedSections: session.state.lockedSections,
                   completeness: updatedCompleteness,

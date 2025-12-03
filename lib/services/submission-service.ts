@@ -127,7 +127,7 @@ export class SubmissionService {
         sessionId: input.sessionId,
         contactInfo: input.contactInfo,
         specificationVersion: input.specification.version,
-        submittedAt: new Date(),
+        submittedAt: new Date().toISOString(),
         status: 'pending',
         referenceNumber: this.generateReferenceNumber(),
       };

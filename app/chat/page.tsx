@@ -65,7 +65,7 @@ function ChatPageContent() {
             id: uuidv4(),
             role: 'assistant',
             content: "Flowency Builder can help you refine your ideas and problems into product specifications that we can then work with you to implement and deliver! Chat with me about your ideas, challenges, bottlenecks or just paste anything you have already and we'll work together to refine it to something we can build!",
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
           };
           setMessages([welcomeMessage]);
         }
@@ -115,7 +115,7 @@ function ChatPageContent() {
       id: uuidv4(),
       role: 'user',
       content,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
     setIsStreaming(true);
@@ -167,7 +167,7 @@ function ChatPageContent() {
                           id: uuidv4(),
                           role: 'assistant',
                           content: assistantContent,
-                          timestamp: new Date(),
+                          timestamp: new Date().toISOString(),
                         },
                       ];
                     }
@@ -224,7 +224,7 @@ function ChatPageContent() {
         id: uuidv4(),
         role: 'assistant',
         content: "I apologize, but I'm having trouble processing your request. Please try again.",
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

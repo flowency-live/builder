@@ -36,6 +36,7 @@ export interface SessionRecord extends DynamoDBRecord {
   lastAccessedAt: string; // ISO timestamp
   magicLinkToken?: string;
   status: 'active' | 'submitted' | 'abandoned';
+  lockedSections?: string[]; // Locked section names
   ttl: number; // Unix timestamp for 30-day expiration
   GSI1PK?: string; // MAGIC_LINK#{token} for magic link lookups
   GSI1SK?: string; // SESSION#{sessionId}
@@ -69,7 +70,7 @@ export interface SpecificationRecord extends DynamoDBRecord {
   version: number;
   plainEnglishSummary: string; // JSON serialized
   formalPRD: string; // JSON serialized
-  progressState: string; // JSON serialized
+  completenessState: string; // JSON serialized
   createdAt: string; // ISO timestamp
   updatedAt: string; // ISO timestamp
 }
@@ -153,8 +154,8 @@ export function sessionToRecord(session: Session): SessionRecord {
     PK: `SESSION#${session.id}`,
     SK: 'METADATA',
     sessionId: session.id,
-    createdAt: session.createdAt.toISOString(),
-    lastAccessedAt: session.lastAccessedAt.toISOString(),
+    createdAt: session.createdAt,
+    lastAccessedAt: session.lastAccessedAt,
     status: 'active',
     ttl,
   };
@@ -174,8 +175,8 @@ export function recordToSession(
 ): Session {
   return {
     id: record.sessionId,
-    createdAt: new Date(record.createdAt),
-    lastAccessedAt: new Date(record.lastAccessedAt),
+    createdAt: record.createdAt,
+    lastAccessedAt: record.lastAccessedAt,
     state,
     magicLinkToken: record.magicLinkToken,
   };
@@ -187,12 +188,12 @@ export function messageToRecord(
 ): ConversationRecord {
   return {
     PK: `SESSION#${sessionId}`,
-    SK: `MESSAGE#${message.timestamp.toISOString()}#${message.id}`,
+    SK: `MESSAGE#${message.timestamp}#${message.id}`,
     sessionId,
     messageId: message.id,
     role: message.role,
     content: message.content,
-    timestamp: message.timestamp.toISOString(),
+    timestamp: message.timestamp,
     metadata: message.metadata,
   };
 }
@@ -202,7 +203,7 @@ export function recordToMessage(record: ConversationRecord): Message {
     id: record.messageId,
     role: record.role,
     content: record.content,
-    timestamp: new Date(record.timestamp),
+    timestamp: record.timestamp,
     metadata: record.metadata,
   };
 }
@@ -210,7 +211,7 @@ export function recordToMessage(record: ConversationRecord): Message {
 export function specificationToRecord(
   sessionId: string,
   specification: Specification,
-  progressState: any
+  completenessState: any
 ): SpecificationRecord {
   return {
     PK: `SESSION#${sessionId}`,
@@ -219,9 +220,9 @@ export function specificationToRecord(
     version: specification.version,
     plainEnglishSummary: JSON.stringify(specification.plainEnglishSummary),
     formalPRD: JSON.stringify(specification.formalPRD),
-    progressState: JSON.stringify(progressState),
-    createdAt: specification.lastUpdated.toISOString(),
-    updatedAt: specification.lastUpdated.toISOString(),
+    completenessState: JSON.stringify(completenessState),
+    createdAt: specification.lastUpdated,
+    updatedAt: specification.lastUpdated,
   };
 }
 
@@ -233,7 +234,7 @@ export function recordToSpecification(
     version: record.version,
     plainEnglishSummary: JSON.parse(record.plainEnglishSummary),
     formalPRD: JSON.parse(record.formalPRD),
-    lastUpdated: new Date(record.updatedAt),
+    lastUpdated: record.updatedAt,
   };
 }
 
@@ -245,7 +246,7 @@ export function submissionToRecord(submission: Submission): SubmissionRecord {
     sessionId: submission.sessionId,
     contactInfo: JSON.stringify(submission.contactInfo),
     specificationVersion: submission.specificationVersion,
-    submittedAt: submission.submittedAt.toISOString(),
+    submittedAt: submission.submittedAt,
     status: submission.status,
     referenceNumber: submission.referenceNumber,
     GSI1PK: `REFERENCE#${submission.referenceNumber}`,
@@ -259,7 +260,7 @@ export function recordToSubmission(record: SubmissionRecord): Submission {
     sessionId: record.sessionId,
     contactInfo: JSON.parse(record.contactInfo),
     specificationVersion: record.specificationVersion,
-    submittedAt: new Date(record.submittedAt),
+    submittedAt: record.submittedAt,
     status: record.status,
     referenceNumber: record.referenceNumber,
   };

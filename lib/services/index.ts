@@ -8,4 +8,3 @@ export * from './prompt-manager';
 export * from './session-manager';
 export * from './conversation-engine';
 export * from './specification-generator';
-export * from './progress-tracker';

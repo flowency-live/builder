@@ -21,8 +21,6 @@ function generateMarkdown(specification: Specification, sessionId: string): stri
 
 ${plainEnglishSummary.overview || 'No overview provided yet.'}
 
-${plainEnglishSummary.estimatedComplexity ? `**Estimated Complexity:** ${plainEnglishSummary.estimatedComplexity}` : ''}
-
 ---
 
 ## Target Users
@@ -39,11 +37,19 @@ ${plainEnglishSummary.keyFeatures.length > 0
 
 ---
 
-## Integrations
+## User Flows
 
-${plainEnglishSummary.integrations.length > 0
-  ? plainEnglishSummary.integrations.map((integration, i) => `- ${integration}`).join('\n')
-  : 'No integrations specified.'}
+${plainEnglishSummary.flows.length > 0
+  ? plainEnglishSummary.flows.map((flow, i) => `${i + 1}. ${flow}`).join('\n')
+  : 'No flows defined yet.'}
+
+---
+
+## Business Rules & Constraints
+
+${plainEnglishSummary.rulesAndConstraints.length > 0
+  ? plainEnglishSummary.rulesAndConstraints.map((rule, i) => `- ${rule}`).join('\n')
+  : 'No rules specified.'}
 
 ---
 

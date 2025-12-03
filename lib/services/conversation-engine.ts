@@ -122,10 +122,12 @@ export class ConversationEngine {
     );
 
     // Add few-shot examples demonstrating Jason-style responses
-    const withExamples = this.enhancePromptWithExamples(withLockedSections, stage);
+    // TEMPORARILY DISABLED: Reduce token usage to prevent timeouts
+    // const withExamples = this.enhancePromptWithExamples(withLockedSections, stage);
+    // const finalPrompt = this.enhancePromptForBusinessLanguage(withExamples);
 
     // Add instruction for business-friendly language
-    const finalPrompt = this.enhancePromptForBusinessLanguage(withExamples);
+    const finalPrompt = this.enhancePromptForBusinessLanguage(withLockedSections);
 
     // Send request to LLM
     const response = await this.llmRouter.sendRequest(
@@ -144,7 +146,6 @@ export class ConversationEngine {
     sessionId: string,
     conversationHistory: Message[],
     specification?: Specification,
-    progressState?: ProgressState,
     lockedSections?: LockedSection[]
   ): Promise<ConversationContext> {
     // Extract project type from conversation history or specification
@@ -154,10 +155,11 @@ export class ConversationEngine {
     const userIntent = this.extractUserIntent(conversationHistory);
 
     // Prune conversation history if it's getting too long
+    // CRITICAL: Match llm-router limit to ensure consistency
     const prunedHistory = this.pruneConversationHistory(
       conversationHistory,
       lockedSections,
-      15 // Keep last 15 messages
+      10 // Keep last 10 messages (matches llm-router slice)
     );
 
     return {
@@ -167,7 +169,6 @@ export class ConversationEngine {
         content: msg.content,
       })),
       currentSpecification: specification,
-      progressState,
       projectType,
       userIntent,
       lockedSections,
@@ -614,7 +615,7 @@ INSTRUCTIONS:
     return {
       name: sectionName,
       summary,
-      lockedAt: new Date(),
+      lockedAt: new Date().toISOString(),
     };
   }
 
@@ -639,13 +640,13 @@ INSTRUCTIONS:
         const features = spec.keyFeatures?.slice(0, 3).join(', ');
         return features ? `Core features: ${features}` : null;
 
-      case 'Integrations':
-        const integrations = spec.integrations?.join(', ');
-        return integrations ? `Integrations: ${integrations}` : null;
+      case 'User Flows':
+        const flows = spec.flows?.slice(0, 2).join('; ');
+        return flows ? `User flows: ${flows}` : null;
 
-      case 'Project Type':
-        const complexity = spec.estimatedComplexity;
-        return complexity ? `Complexity: ${complexity}` : null;
+      case 'Business Rules':
+        const rules = spec.rulesAndConstraints?.slice(0, 2).join('; ');
+        return rules ? `Rules: ${rules}` : null;
 
       default:
         return null;
@@ -699,7 +700,7 @@ INSTRUCTIONS:
         id: uuidv4(),
         role: 'system',
         content: this.formatLockedSectionsAsMessage(lockedSections),
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
 
       // Insert checkpoint at the beginning

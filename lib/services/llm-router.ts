@@ -141,9 +141,11 @@ export class LLMRouter {
     const maxTokens = options.maxTokens ?? 1000;
 
     // Build messages array from context
+    // CRITICAL: Limit to last 10 messages to prevent timeout with long conversations
+    const recentHistory = context.conversationHistory.slice(-10);
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: prompt },
-      ...context.conversationHistory.map((msg) => ({
+      ...recentHistory.map((msg) => ({
         role: msg.role as 'user' | 'assistant' | 'system',
         content: msg.content,
       })),
@@ -202,7 +204,9 @@ export class LLMRouter {
     const maxTokens = options.maxTokens ?? 1000;
 
     // Build messages array from context (Anthropic format)
-    const messages = context.conversationHistory.map((msg) => ({
+    // CRITICAL: Limit to last 10 messages to prevent timeout with long conversations
+    const recentHistory = context.conversationHistory.slice(-10);
+    const messages = recentHistory.map((msg) => ({
       role: msg.role === 'assistant' ? ('assistant' as const) : ('user' as const),
       content: msg.content,
     }));

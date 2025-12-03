@@ -19,6 +19,7 @@ import type {
   Message,
   Specification,
 } from '../models/types';
+import { DEFAULT_MISSING_SECTIONS } from '../models/types';
 import {
   sessionToRecord,
   recordToSession,
@@ -48,7 +49,7 @@ export class SessionManager {
    */
   async createSession(): Promise<Session> {
     const sessionId = uuidv4();
-    const now = new Date();
+    const now = new Date().toISOString();
 
     const session: Session = {
       id: sessionId,
@@ -61,9 +62,15 @@ export class SessionManager {
           version: 0,
           plainEnglishSummary: {
             overview: '',
-            keyFeatures: [],
             targetUsers: '',
-            integrations: [],
+            keyFeatures: [],
+            flows: [],
+            rulesAndConstraints: [],
+            nonFunctional: [],
+            mvpDefinition: {
+              included: [],
+              excluded: [],
+            },
           },
           formalPRD: {
             introduction: '',
@@ -73,16 +80,12 @@ export class SessionManager {
           },
           lastUpdated: now,
         },
-        progress: {
-          topics: [],
-          overallCompleteness: 0,
-          projectComplexity: 'Simple',
-        },
         completeness: {
-          missingSections: ['overview', 'targetUsers', 'keyFeatures', 'flows'],
+          missingSections: [...DEFAULT_MISSING_SECTIONS],
           readyForHandoff: false,
           lastEvaluated: now,
         },
+        lockedSections: [],
       },
     };
 
@@ -133,7 +136,7 @@ export class SessionManager {
 
     const conversationHistory: Message[] = (conversationResponse.Items || [])
       .map((item) => recordToMessage(item as ConversationRecord))
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
     // Get latest specification
     const specKey = AccessPatterns.getLatestSpecification(sessionId);
@@ -151,12 +154,19 @@ export class SessionManager {
     );
 
     let specification: Specification;
-    let progress;
+    let completeness;
 
     if (specResponse.Items && specResponse.Items.length > 0) {
       const specRecord = specResponse.Items[0] as SpecificationRecord;
       specification = recordToSpecification(specRecord);
-      progress = JSON.parse(specRecord.progressState);
+      // Try to parse completeness if it exists in DB
+      completeness = specRecord.completenessState
+        ? JSON.parse(specRecord.completenessState)
+        : {
+            missingSections: [...DEFAULT_MISSING_SECTIONS],
+            readyForHandoff: false,
+            lastEvaluated: new Date().toISOString(),
+          };
     } else {
       // No specification yet, use default
       specification = {
@@ -164,9 +174,15 @@ export class SessionManager {
         version: 0,
         plainEnglishSummary: {
           overview: '',
-          keyFeatures: [],
           targetUsers: '',
-          integrations: [],
+          keyFeatures: [],
+          flows: [],
+          rulesAndConstraints: [],
+          nonFunctional: [],
+          mvpDefinition: {
+            included: [],
+            excluded: [],
+          },
         },
         formalPRD: {
           introduction: '',
@@ -174,19 +190,20 @@ export class SessionManager {
           requirements: [],
           nonFunctionalRequirements: [],
         },
-        lastUpdated: new Date(sessionRecord.createdAt),
+        lastUpdated: sessionRecord.createdAt, // Already ISO string from DB
       };
-      progress = {
-        topics: [],
-        overallCompleteness: 0,
-        projectComplexity: 'Simple',
+      completeness = {
+        missingSections: [...DEFAULT_MISSING_SECTIONS],
+        readyForHandoff: false,
+        lastEvaluated: new Date().toISOString(),
       };
     }
 
     const sessionState: SessionState = {
       conversationHistory,
       specification,
-      progress,
+      completeness,
+      lockedSections: [],
     };
 
     // Update last accessed time
@@ -203,7 +220,7 @@ export class SessionManager {
     sessionId: string,
     state: SessionState
   ): Promise<void> {
-    const now = new Date();
+    const now = new Date().toISOString();
 
     // Save new messages (only those not already saved)
     const existingSession = await this.getSession(sessionId);
@@ -233,7 +250,7 @@ export class SessionManager {
       const specRecord = specificationToRecord(
         sessionId,
         state.specification,
-        state.progress
+        state.completeness
       );
       await dynamoDBDocClient.send(
         new PutCommand({
@@ -423,10 +440,8 @@ export class SessionManager {
       }
 
       const messages = JSON.parse(stored);
-      return messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp),
-      }));
+      // Messages already have ISO string timestamps, no conversion needed
+      return messages;
     } catch (error) {
       console.error('Failed to get offline messages:', error);
       return [];

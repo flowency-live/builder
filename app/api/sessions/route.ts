@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
       success: true,
       session: {
         id: session.id,
-        createdAt: session.createdAt.toISOString(),
-        lastAccessedAt: session.lastAccessedAt.toISOString(),
+        createdAt: session.createdAt,
+        lastAccessedAt: session.lastAccessedAt,
       },
     }, { status: 201 });
   } catch (error) {

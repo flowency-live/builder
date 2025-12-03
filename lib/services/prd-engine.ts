@@ -143,10 +143,15 @@ Return JSON with this exact structure:
   "spec": {
     "plainEnglishSummary": {
       "overview": "1-2 sentence elevator pitch describing what the product does and who it's for",
-      "keyFeatures": ["clean feature descriptions as bullet points"],
       "targetUsers": "clear description of who will use this",
-      "integrations": ["external systems/services mentioned"],
-      "estimatedComplexity": "Simple"
+      "keyFeatures": ["feature 1", "feature 2", "feature 3"],
+      "flows": ["user workflow 1: describe key user journey", "workflow 2"],
+      "rulesAndConstraints": ["business rule 1", "constraint 1"],
+      "nonFunctional": ["performance expectation", "reliability need"],
+      "mvpDefinition": {
+        "included": ["core feature 1 for v1", "core feature 2"],
+        "excluded": ["future feature 1", "nice-to-have 1"]
+      }
     },
     "formalPRD": {
       "introduction": "professional introduction paragraph for the PRD",
