@@ -59,6 +59,112 @@ export class SpecificationGenerator {
   }
 
   /**
+   * Regenerate specification from entire conversation history (holistic analysis)
+   * This creates a clean, synthesized spec rather than incremental updates
+   */
+  async regenerateFromFullConversation(
+    conversationHistory: Message[],
+    sessionId: string
+  ): Promise<Specification> {
+    if (!this.llmRouter) {
+      // Fall back to empty spec if no LLM
+      return this.createEmptySpecification();
+    }
+
+    try {
+      // Build conversation transcript
+      const transcript = conversationHistory
+        .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
+        .join('\n\n');
+
+      // Ask LLM to synthesize the specification
+      const synthesisPrompt = `You are analyzing a complete conversation between a user and an AI assistant about building software. Generate a comprehensive product specification from this conversation.
+
+CONVERSATION:
+${transcript}
+
+Generate a JSON object with this structure:
+{
+  "plainEnglishSummary": {
+    "overview": "1-2 sentence elevator pitch describing what the product does and who it's for",
+    "keyFeatures": ["clean feature descriptions as bullet points"],
+    "targetUsers": "clear description of who will use this",
+    "integrations": ["external systems/services mentioned"]
+  },
+  "formalPRD": {
+    "introduction": "professional introduction paragraph for the PRD",
+    "requirements": [
+      {
+        "userStory": "As a [user], I want [goal], so that [benefit]",
+        "acceptanceCriteria": ["WHEN [trigger] THEN THE System SHALL [response]"],
+        "priority": "must-have|should-have|nice-to-have"
+      }
+    ],
+    "nonFunctionalRequirements": [
+      {"category": "Performance|Security|Usability|etc", "description": "THE System SHALL [requirement]"}
+    ]
+  }
+}
+
+Guidelines:
+- Write overview as a polished elevator pitch, not raw conversation text
+- Extract real features from the conversation, not placeholders
+- Be specific and concrete
+- Use UK English
+- Format requirements using EARS pattern (Event-driven, State-driven, etc.)
+- Only include information actually discussed in the conversation`;
+
+      const response = await this.llmRouter.complete({
+        messages: [{ role: 'user', content: synthesisPrompt }],
+        model: 'claude-3-5-haiku-20241022',
+        temperature: 0.3,
+        maxTokens: 4000,
+      });
+
+      const synthesized = JSON.parse(response.content);
+
+      // Build the specification object
+      const specification: Specification = {
+        id: uuidv4(),
+        version: 1,
+        plainEnglishSummary: {
+          overview: synthesized.plainEnglishSummary.overview || '',
+          keyFeatures: synthesized.plainEnglishSummary.keyFeatures || [],
+          targetUsers: synthesized.plainEnglishSummary.targetUsers || '',
+          integrations: synthesized.plainEnglishSummary.integrations || [],
+          estimatedComplexity: this.estimateComplexityFromFeatures(
+            synthesized.plainEnglishSummary.keyFeatures?.length || 0
+          ),
+        },
+        formalPRD: {
+          introduction: synthesized.formalPRD.introduction || '',
+          glossary: this.buildGlossary(conversationHistory, {}),
+          requirements: (synthesized.formalPRD.requirements || []).map((req: any, idx: number) => ({
+            id: `req-${idx + 1}`,
+            userStory: req.userStory,
+            acceptanceCriteria: req.acceptanceCriteria || [],
+            priority: req.priority || 'must-have',
+          })),
+          nonFunctionalRequirements: (synthesized.formalPRD.nonFunctionalRequirements || []).map(
+            (nfr: any, idx: number) => ({
+              id: `nfr-${idx + 1}`,
+              category: nfr.category,
+              description: nfr.description,
+            })
+          ),
+        },
+        lastUpdated: new Date(),
+      };
+
+      return specification;
+    } catch (error) {
+      console.error('Full conversation synthesis failed:', error);
+      // Return empty spec on failure
+      return this.createEmptySpecification();
+    }
+  }
+
+  /**
    * Extract information from user message and assistant response using LLM
    */
   async extractInformation(
@@ -702,6 +808,19 @@ Only include fields in "data" where actual information was provided. Be specific
     if (totalComplexity <= 5) {
       return 'Simple';
     } else if (totalComplexity <= 15) {
+      return 'Medium';
+    } else {
+      return 'Complex';
+    }
+  }
+
+  /**
+   * Estimate complexity based on feature count
+   */
+  private estimateComplexityFromFeatures(featureCount: number): 'Simple' | 'Medium' | 'Complex' {
+    if (featureCount <= 3) {
+      return 'Simple';
+    } else if (featureCount <= 8) {
       return 'Medium';
     } else {
       return 'Complex';

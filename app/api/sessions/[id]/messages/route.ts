@@ -124,23 +124,36 @@ export async function POST(
           // Update conversation history
           const finalHistory = [...updatedHistory, assistantMessage];
 
-          // Extract information and update specification
-          const extractedInfo = await specificationGenerator.extractInformation(
-            userMessageContent,
-            fullResponse,
-            context
-          );
+          // Determine if we should do holistic regeneration (every 5 messages)
+          const shouldRegenerate = finalHistory.length % 5 === 0 && finalHistory.length >= 5;
 
           let updatedSpecification = session.state.specification;
           let specUpdated = false;
 
-          if (extractedInfo && Object.keys(extractedInfo.data).length > 0) {
-            updatedSpecification = await specificationGenerator.updateSpecification(
-              sessionId,
-              extractedInfo,
-              session.state.specification
+          if (shouldRegenerate) {
+            // Holistic regeneration from full conversation
+            console.log(`Regenerating spec from full conversation (${finalHistory.length} messages)`);
+            updatedSpecification = await specificationGenerator.regenerateFromFullConversation(
+              finalHistory,
+              sessionId
             );
             specUpdated = true;
+          } else {
+            // Incremental extraction for real-time updates
+            const extractedInfo = await specificationGenerator.extractInformation(
+              userMessageContent,
+              fullResponse,
+              context
+            );
+
+            if (extractedInfo && Object.keys(extractedInfo.data).length > 0) {
+              updatedSpecification = await specificationGenerator.updateSpecification(
+                sessionId,
+                extractedInfo,
+                session.state.specification
+              );
+              specUpdated = true;
+            }
           }
 
           // Update progress
