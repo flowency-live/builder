@@ -78,6 +78,11 @@ export class SessionManager {
           overallCompleteness: 0,
           projectComplexity: 'Simple',
         },
+        completeness: {
+          missingSections: ['overview', 'targetUsers', 'keyFeatures', 'flows'],
+          readyForHandoff: false,
+          lastEvaluated: now,
+        },
       },
     };
 

@@ -15,6 +15,11 @@ function ChatPageContent() {
   const [sessionId, setSessionId] = useState<string>(sessionIdFromUrl || '');
   const [messages, setMessages] = useState<Message[]>([]);
   const [specification, setSpecification] = useState<Specification | null>(null);
+  const [completeness, setCompleteness] = useState<{
+    missingSections: string[];
+    readyForHandoff: boolean;
+    lastEvaluated: Date;
+  } | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -168,25 +173,36 @@ function ChatPageContent() {
 
                 // Handle completion event with specification data
                 if (data.type === 'complete' && data.data) {
+                  const newSpec = data.data.specification;
+                  const newCompleteness = data.data.completeness;
+
                   console.log('[CLIENT] Spec update received:', {
                     specUpdated: data.data.specUpdated,
-                    hasSpecification: !!data.data.specification,
-                    version: data.data.specification?.version,
+                    hasSpecification: !!newSpec,
+                    version: newSpec?.version,
                     messageCount: messages.length + 1
                   });
 
-                  if (data.data.specification) {
-                    console.log('[CLIENT] Specification data:', {
-                      overview: data.data.specification.plainEnglishSummary.overview.substring(0, 100) + '...',
-                      featuresCount: data.data.specification.plainEnglishSummary.keyFeatures.length,
-                      targetUsers: data.data.specification.plainEnglishSummary.targetUsers,
-                      requirementsCount: data.data.specification.formalPRD.requirements.length
-                    });
+                  if (newSpec) {
+                    // Only update if version is newer (ignore stale out-of-order updates)
+                    if (!specification || newSpec.version > specification.version) {
+                      console.log('[CLIENT] Applying spec update (version:', newSpec.version, ')');
+                      console.log('[CLIENT] Specification data:', {
+                        overview: newSpec.plainEnglishSummary.overview.substring(0, 100) + '...',
+                        featuresCount: newSpec.plainEnglishSummary.keyFeatures.length,
+                        targetUsers: newSpec.plainEnglishSummary.targetUsers,
+                        requirementsCount: newSpec.formalPRD.requirements.length
+                      });
 
-                    setSpecification(data.data.specification);
-                    if (data.data.specUpdated) {
-                      setRecentlyUpdatedSections(['overview', 'features']);
-                      setTimeout(() => setRecentlyUpdatedSections([]), 3000);
+                      setSpecification(newSpec);
+                      setCompleteness(newCompleteness);
+
+                      if (data.data.specUpdated) {
+                        setRecentlyUpdatedSections(['overview', 'features']);
+                        setTimeout(() => setRecentlyUpdatedSections([]), 3000);
+                      }
+                    } else {
+                      console.log('[CLIENT] Ignoring stale spec update (version:', newSpec.version, 'vs current:', specification.version, ')');
                     }
                   }
                 }
@@ -210,6 +226,29 @@ function ChatPageContent() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsStreaming(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!completeness?.readyForHandoff) return;
+
+    try {
+      const response = await fetch(`/api/sessions/${sessionId}/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('Specification submitted successfully! We will review and get back to you within 48 hours.');
+        console.log('[CLIENT] Submission response:', data);
+      } else {
+        alert('Failed to submit specification. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting specification:', error);
+      alert('Failed to submit specification. Please try again.');
     }
   };
 
@@ -253,6 +292,17 @@ function ChatPageContent() {
           sessionId={sessionId}
           specification={specification}
         />
+      )}
+
+      {completeness?.readyForHandoff && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <button
+            onClick={handleSubmit}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
+          >
+            Submit Spec
+          </button>
+        </div>
       )}
     </div>
   );

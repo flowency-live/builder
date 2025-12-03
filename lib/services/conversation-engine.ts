@@ -103,9 +103,15 @@ export class ConversationEngine {
       context.projectType
     );
 
+    // Add spec context to inform chat of captured information
+    const withSpecContext = this.enhancePromptWithSpecContext(
+      systemPrompt,
+      context.currentSpecification
+    );
+
     // Add instruction to avoid redundant questions
     const withRedundancyCheck = this.enhancePromptWithRedundancyCheck(
-      systemPrompt,
+      withSpecContext,
       context
     );
 
@@ -277,6 +283,38 @@ LANGUAGE GUIDELINES:
 - When technical concepts are necessary, explain them in business terms
 - Focus on business outcomes and user needs, not implementation details
 - Ask about "what" and "why" rather than "how"`;
+  }
+
+  /**
+   * Enhance prompt with current specification context
+   * Informs the AI of what has already been captured
+   */
+  private enhancePromptWithSpecContext(prompt: string, specification?: Specification): string {
+    if (!specification || specification.version === 0) {
+      return prompt;
+    }
+
+    const overview = specification.plainEnglishSummary?.overview ?? '';
+    const targetUsers = specification.plainEnglishSummary?.targetUsers ?? '';
+    const keyFeatures = specification.plainEnglishSummary?.keyFeatures ?? [];
+
+    if (!overview && !targetUsers && keyFeatures.length === 0) {
+      return prompt;
+    }
+
+    return `${prompt}
+
+CURRENT SPECIFICATION STATE:
+Overview: ${overview || 'Not yet defined'}
+Target Users: ${targetUsers || 'Not yet defined'}
+Features Captured: ${keyFeatures.length} features
+Key Features: ${keyFeatures.slice(0, 5).join(', ')}
+
+INSTRUCTIONS:
+- Reference what we already know from the spec
+- Ask about gaps only
+- Don't repeat questions about captured information
+- Build on existing knowledge`;
   }
 
   /**

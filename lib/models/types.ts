@@ -110,6 +110,15 @@ export interface LockedSection {
 }
 
 /**
+ * Completeness tracking for specification readiness
+ */
+export interface CompletenessState {
+  missingSections: string[];
+  readyForHandoff: boolean;
+  lastEvaluated: Date;
+}
+
+/**
  * Session state containing all conversation and specification data
  */
 export interface SessionState {
@@ -118,6 +127,7 @@ export interface SessionState {
   progress: ProgressState;
   userInfo?: ContactInfo;
   lockedSections?: LockedSection[]; // Track what's been decided
+  completeness?: CompletenessState; // Track spec completeness and readiness
 }
 
 /**

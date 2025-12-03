@@ -310,6 +310,61 @@ export class LLMRouter {
   }
 
   /**
+   * Complete a non-streaming request (for PRD generation, etc.)
+   * Returns the full response as a string
+   */
+  async complete(options: {
+    messages: Array<{ role: string; content: string }>;
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+  }): Promise<{ content: string }> {
+    await this.checkRateLimit();
+
+    const provider = this.anthropicClient ? 'anthropic' : 'openai';
+    const model = options.model || (provider === 'anthropic'
+      ? this.config.anthropic.defaultModel
+      : this.config.openai.defaultModel);
+    const temperature = options.temperature ?? 0.7;
+    const maxTokens = options.maxTokens ?? 1000;
+
+    if (provider === 'anthropic' && this.anthropicClient) {
+      const response = await this.anthropicClient.messages.create({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        messages: options.messages.map(msg => ({
+          role: msg.role === 'assistant' ? ('assistant' as const) : ('user' as const),
+          content: msg.content,
+        })),
+      });
+
+      const content = response.content
+        .filter((block: any) => block.type === 'text')
+        .map((block: any) => block.text)
+        .join('');
+
+      this.updateRateLimitState(1, this.estimateTokens(content));
+
+      return { content };
+    } else if (provider === 'openai' && this.openaiClient) {
+      const response = await this.openaiClient.chat.completions.create({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        messages: options.messages as any,
+      });
+
+      const content = response.choices[0]?.message?.content || '';
+      this.updateRateLimitState(1, this.estimateTokens(content));
+
+      return { content };
+    }
+
+    throw new Error('No LLM provider available');
+  }
+
+  /**
    * Provide a fallback response when LLM fails
    * Implements graceful degradation for LLM failures
    * Requirements: 14.3

@@ -10,6 +10,7 @@ import { LLMRouter } from '@/lib/services/llm-router';
 import { PromptManager } from '@/lib/services/prompt-manager';
 import { SpecificationGenerator } from '@/lib/services/specification-generator';
 import { ProgressTracker } from '@/lib/services/progress-tracker';
+import { PRDEngine } from '@/lib/services/prd-engine';
 import { v4 as uuidv4 } from 'uuid';
 import type { Message, SessionState } from '@/lib/models/types';
 
@@ -32,6 +33,7 @@ const promptManager = new PromptManager();
 const conversationEngine = new ConversationEngine(llmRouter, promptManager);
 const specificationGenerator = new SpecificationGenerator(llmRouter);
 const progressTracker = new ProgressTracker();
+const prdEngine = new PRDEngine(llmRouter);
 
 export async function POST(
   request: NextRequest,
@@ -124,52 +126,72 @@ export async function POST(
           // Update conversation history
           const finalHistory = [...updatedHistory, assistantMessage];
 
-          // Determine if we should do holistic regeneration (every 3 messages for more frequent updates)
-          const shouldRegenerate = finalHistory.length % 3 === 0 && finalHistory.length >= 3;
+          // Count user messages only (not total history including assistant)
+          const userMessageCount = finalHistory.filter(m => m.role === 'user').length;
 
-          console.log(`[SPEC DEBUG] Message count: ${finalHistory.length}, Should regenerate: ${shouldRegenerate}`);
-          console.log(`[SPEC DEBUG] Current spec version: ${session.state.specification.version}`);
+          // Smart regeneration trigger
+          const shouldUpdateSpec =
+            userMessageCount % 3 === 0 ||
+            /\b(summary|spec|PRD|requirements)\b/i.test(userMessageContent);
+
+          console.log(`[SPEC] User message count: ${userMessageCount}, Should update: ${shouldUpdateSpec}`);
 
           let updatedSpecification = session.state.specification;
           let specUpdated = false;
 
-          if (shouldRegenerate) {
-            // Holistic regeneration from full conversation
-            console.log(`[SPEC REGEN] Regenerating spec from full conversation (${finalHistory.length} messages)`);
+          if (shouldUpdateSpec) {
+            const isFirstRun = session.state.specification.version === 0;
+
+            console.log(`[SPEC] Calling PRD engine (isFirstRun: ${isFirstRun})`);
+
             try {
-              updatedSpecification = await specificationGenerator.regenerateFromFullConversation(
-                finalHistory,
-                sessionId
-              );
-              console.log(`[SPEC REGEN] SUCCESS - New version: ${updatedSpecification.version}`);
-              console.log(`[SPEC REGEN] Overview: ${updatedSpecification.plainEnglishSummary.overview.substring(0, 100)}...`);
-              console.log(`[SPEC REGEN] Features count: ${updatedSpecification.plainEnglishSummary.keyFeatures.length}`);
-              console.log(`[SPEC REGEN] Requirements count: ${updatedSpecification.formalPRD.requirements.length}`);
+              const prdResult = await prdEngine.synthesize({
+                mode: 'update',
+                currentSpec: session.state.specification,
+                lastMessages: isFirstRun
+                  ? finalHistory
+                  : finalHistory.slice(-3),
+                isFirstRun
+              });
+
+              // PRD engine returns FULL spec - overwrite completely
+              updatedSpecification = {
+                ...prdResult.spec,
+                id: session.state.specification.id,
+                version: session.state.specification.version + 1,
+                lastUpdated: new Date()
+              };
+
+              // Calculate readyForHandoff in TypeScript (deterministic)
+              const missingSections = prdResult.missingSections;
+              const readyForHandoff =
+                updatedSpecification.plainEnglishSummary.overview.length > 50 &&
+                updatedSpecification.plainEnglishSummary.targetUsers.length > 20 &&
+                updatedSpecification.plainEnglishSummary.keyFeatures.length >= 5 &&
+                missingSections.length === 0;
+
+              // Persist completeness in SessionState
+              session.state.specification = updatedSpecification;
+              session.state.completeness = {
+                missingSections,
+                readyForHandoff,
+                lastEvaluated: new Date(),
+              };
+
+              // Debug logging
+              console.log('[PRD] Updated', {
+                sessionId,
+                version: updatedSpecification.version,
+                featuresCount: updatedSpecification.plainEnglishSummary.keyFeatures.length,
+                overview: updatedSpecification.plainEnglishSummary.overview.substring(0, 100),
+                missingSections,
+                readyForHandoff,
+              });
+
               specUpdated = true;
             } catch (error) {
-              console.error(`[SPEC REGEN] FAILED:`, error);
-              // Don't update spec if regeneration failed
-            }
-          } else {
-            // Incremental extraction for real-time updates
-            console.log(`[SPEC INCREMENTAL] Attempting incremental extraction`);
-            const extractedInfo = await specificationGenerator.extractInformation(
-              userMessageContent,
-              fullResponse,
-              context
-            );
-
-            if (extractedInfo && Object.keys(extractedInfo.data).length > 0) {
-              console.log(`[SPEC INCREMENTAL] Extracted topic: ${extractedInfo.topic}`);
-              console.log(`[SPEC INCREMENTAL] Extracted data keys: ${Object.keys(extractedInfo.data).join(', ')}`);
-              updatedSpecification = await specificationGenerator.updateSpecification(
-                sessionId,
-                extractedInfo,
-                session.state.specification
-              );
-              specUpdated = true;
-            } else {
-              console.log(`[SPEC INCREMENTAL] No relevant info extracted`);
+              console.error('[PRD] Failed to update spec:', error);
+              // Keep existing spec on failure
             }
           }
 
@@ -185,6 +207,7 @@ export async function POST(
             progress: updatedProgress,
             userInfo: session.state.userInfo,
             lockedSections: session.state.lockedSections,
+            completeness: session.state.completeness,
           };
 
           await sessionManager.saveSessionState(sessionId, updatedState);
@@ -194,6 +217,7 @@ export async function POST(
             messageId: assistantMessage.id,
             specUpdated,
             specification: updatedSpecification,
+            completeness: session.state.completeness,
             progress: updatedProgress,
             latency: Date.now() - startTime,
           };
