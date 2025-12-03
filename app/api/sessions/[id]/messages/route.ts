@@ -124,22 +124,35 @@ export async function POST(
           // Update conversation history
           const finalHistory = [...updatedHistory, assistantMessage];
 
-          // Determine if we should do holistic regeneration (every 5 messages)
-          const shouldRegenerate = finalHistory.length % 5 === 0 && finalHistory.length >= 5;
+          // Determine if we should do holistic regeneration (every 3 messages for more frequent updates)
+          const shouldRegenerate = finalHistory.length % 3 === 0 && finalHistory.length >= 3;
+
+          console.log(`[SPEC DEBUG] Message count: ${finalHistory.length}, Should regenerate: ${shouldRegenerate}`);
+          console.log(`[SPEC DEBUG] Current spec version: ${session.state.specification.version}`);
 
           let updatedSpecification = session.state.specification;
           let specUpdated = false;
 
           if (shouldRegenerate) {
             // Holistic regeneration from full conversation
-            console.log(`Regenerating spec from full conversation (${finalHistory.length} messages)`);
-            updatedSpecification = await specificationGenerator.regenerateFromFullConversation(
-              finalHistory,
-              sessionId
-            );
-            specUpdated = true;
+            console.log(`[SPEC REGEN] Regenerating spec from full conversation (${finalHistory.length} messages)`);
+            try {
+              updatedSpecification = await specificationGenerator.regenerateFromFullConversation(
+                finalHistory,
+                sessionId
+              );
+              console.log(`[SPEC REGEN] SUCCESS - New version: ${updatedSpecification.version}`);
+              console.log(`[SPEC REGEN] Overview: ${updatedSpecification.plainEnglishSummary.overview.substring(0, 100)}...`);
+              console.log(`[SPEC REGEN] Features count: ${updatedSpecification.plainEnglishSummary.keyFeatures.length}`);
+              console.log(`[SPEC REGEN] Requirements count: ${updatedSpecification.formalPRD.requirements.length}`);
+              specUpdated = true;
+            } catch (error) {
+              console.error(`[SPEC REGEN] FAILED:`, error);
+              // Don't update spec if regeneration failed
+            }
           } else {
             // Incremental extraction for real-time updates
+            console.log(`[SPEC INCREMENTAL] Attempting incremental extraction`);
             const extractedInfo = await specificationGenerator.extractInformation(
               userMessageContent,
               fullResponse,
@@ -147,12 +160,16 @@ export async function POST(
             );
 
             if (extractedInfo && Object.keys(extractedInfo.data).length > 0) {
+              console.log(`[SPEC INCREMENTAL] Extracted topic: ${extractedInfo.topic}`);
+              console.log(`[SPEC INCREMENTAL] Extracted data keys: ${Object.keys(extractedInfo.data).join(', ')}`);
               updatedSpecification = await specificationGenerator.updateSpecification(
                 sessionId,
                 extractedInfo,
                 session.state.specification
               );
               specUpdated = true;
+            } else {
+              console.log(`[SPEC INCREMENTAL] No relevant info extracted`);
             }
           }
 

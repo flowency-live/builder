@@ -121,7 +121,20 @@ Guidelines:
         maxTokens: 4000,
       });
 
-      const synthesized = JSON.parse(response.content);
+      console.log(`[SPEC GEN] LLM Response length: ${response.content.length} chars`);
+      console.log(`[SPEC GEN] LLM Response preview: ${response.content.substring(0, 200)}...`);
+
+      let synthesized;
+      try {
+        synthesized = JSON.parse(response.content);
+        console.log(`[SPEC GEN] JSON parsed successfully`);
+        console.log(`[SPEC GEN] Has plainEnglishSummary: ${!!synthesized.plainEnglishSummary}`);
+        console.log(`[SPEC GEN] Has formalPRD: ${!!synthesized.formalPRD}`);
+      } catch (parseError) {
+        console.error(`[SPEC GEN] JSON parse FAILED:`, parseError);
+        console.error(`[SPEC GEN] Raw response:`, response.content);
+        throw new Error(`Failed to parse LLM response as JSON: ${parseError.message}`);
+      }
 
       // Build the specification object
       const specification: Specification = {
